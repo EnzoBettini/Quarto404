@@ -1,0 +1,207 @@
+<template>
+    <div ref="gameContainer" class="game-container"></div>
+</template>
+
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+import Phaser from 'phaser'
+import hitSound from '@/assets/Package/Sounds/hit.wav'
+
+const gameContainer = ref(null)
+let game = null
+
+onMounted(() => {
+    const config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        parent: gameContainer.value,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 0 },
+                debug: false
+            }
+        },
+        scene: [MenuScene, GameScene]
+    }
+
+    game = new Phaser.Game(config)
+})
+
+onBeforeUnmount(() => {
+    if (game) {
+        game.destroy(true)
+    }
+})
+
+// =============== MENU SCENE ===============
+class MenuScene extends Phaser.Scene {
+    constructor() {
+        super('MenuScene')
+    }
+
+    create() {
+        this.cameras.main.setBackgroundColor('#1a1a1a')
+
+        this.add.text(400, 200, 'Meu Jogo 2D', {
+            fontSize: '40px',
+            color: '#ffffff'
+        }).setOrigin(0.5)
+
+        const playButton = this.add.text(400, 300, '▶ Jogar', {
+            fontSize: '32px',
+            color: '#00ff00',
+            backgroundColor: '#000',
+            padding: { left: 20, right: 20, top: 10, bottom: 10 }
+        }).setOrigin(0.5)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => this.scene.start('GameScene'))
+            .on('pointerover', () => playButton.setStyle({ backgroundColor: '#222' }))
+            .on('pointerout', () => playButton.setStyle({ backgroundColor: '#000' }))
+    }
+}
+
+// =============== GAME SCENE ===============
+class GameScene extends Phaser.Scene {
+    constructor() {
+        super('GameScene')
+    }
+
+    preload() {
+        this.load.image('background', 'https://i.imgur.com/0K0QeXH.png')
+        this.load.image('item', 'https://labs.phaser.io/assets/sprites/apple.png')
+        this.load.spritesheet('dude', 'https://labs.phaser.io/assets/sprites/dude.png', {
+            frameWidth: 32,
+            frameHeight: 48
+        })
+        this.load.audio('step', hitSound)
+    }
+
+    create() {
+        this.add.image(400, 300, 'background').setDisplaySize(800, 600)
+
+        this.player = this.physics.add.sprite(400, 300, 'dude')
+        this.player.setCollideWorldBounds(true)
+
+        this.item = this.physics.add.staticImage(600, 300, 'item')
+        this.item.setScale(1.5)
+
+        this.nearItem = false
+        this.isTyping = false
+        this.fullMessage = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
+
+        this.dialogueBox = this.add.text(400, 550, '', {
+            fontSize: '18px',
+            color: '#fff',
+            backgroundColor: '#000',
+            padding: { x: 10, y: 10 },
+            wordWrap: { width: 780 }
+        }).setOrigin(0.5)
+        this.dialogueBox.setVisible(false)
+
+        this.stepSound = this.sound.add('step', { volume: 0.5 })
+
+        this.anims.create({
+            key: 'left',
+            frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
+            frameRate: 10,
+            repeat: -1
+        })
+        this.anims.create({
+            key: 'turn',
+            frames: [{ key: 'dude', frame: 4 }],
+            frameRate: 20
+        })
+        this.anims.create({
+            key: 'right',
+            frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
+            frameRate: 10,
+            repeat: -1
+        })
+
+        this.cursors = this.input.keyboard.createCursorKeys()
+        this.keyE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E)
+
+        this.lastStepTime = 0
+        this.stepCooldown = 250
+    }
+
+    update(time) {
+        const speed = 160
+        this.player.setVelocity(0)
+        this.nearItem = false
+
+        // Movimento
+        if (this.cursors.left.isDown) {
+            this.player.setVelocityX(-speed)
+            this.player.anims.play('left', true)
+        } else if (this.cursors.right.isDown) {
+            this.player.setVelocityX(speed)
+            this.player.anims.play('right', true)
+        }
+
+        if (this.cursors.up.isDown) {
+            this.player.setVelocityY(-speed)
+        } else if (this.cursors.down.isDown) {
+            this.player.setVelocityY(speed)
+        }
+
+        if (!this.cursors.left.isDown && !this.cursors.right.isDown &&
+            !this.cursors.up.isDown && !this.cursors.down.isDown) {
+            this.player.anims.play('turn')
+        }
+
+        // Som de passo
+        if ((this.cursors.left.isDown || this.cursors.right.isDown ||
+            this.cursors.up.isDown || this.cursors.down.isDown) &&
+            time > this.lastStepTime + this.stepCooldown) {
+            this.stepSound.play()
+            this.lastStepTime = time
+        }
+
+        // Proximidade com item
+        if (Phaser.Math.Distance.Between(this.player.x, this.player.y, this.item.x, this.item.y) < 50) {
+            this.nearItem = true
+        }
+
+        // Pressionou E
+        if (Phaser.Input.Keyboard.JustDown(this.keyE) && this.nearItem && !this.isTyping) {
+            this.typeText(this.fullMessage, 30, 2000)
+        }
+    }
+
+    typeText(text, charDelay = 30, holdTime = 2000) {
+        this.isTyping = true
+        this.dialogueBox.setVisible(true)
+        this.dialogueBox.setText('')
+        let i = 0
+
+        this.typingEvent = this.time.addEvent({
+            delay: charDelay,
+            callback: () => {
+                this.dialogueBox.setText(this.dialogueBox.text + text[i])
+                i++
+                if (i === text.length) {
+                    this.typingEvent.remove()
+                    this.time.delayedCall(holdTime, () => {
+                        this.dialogueBox.setVisible(false)
+                        this.isTyping = false
+                    })
+                }
+            },
+            callbackScope: this,
+            loop: true
+        })
+    }
+}
+</script>
+
+<style scoped>
+.game-container {
+    width: 800px;
+    height: 600px;
+    margin: auto;
+    border: 2px solid #333;
+}
+</style>
