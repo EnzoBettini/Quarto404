@@ -1,0 +1,1 @@
+<template><router-view /></template><script setup>// Nenhum script específico é necessário aqui agora</script><style>body{ margin: 0; font-family: 'Courier New', Courier, monospace; background-color: #000; color: #eee; overflow: hidden; }</style>

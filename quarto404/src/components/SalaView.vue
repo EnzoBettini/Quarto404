@@ -1,0 +1,139 @@
+<template>
+  <div class="sala-container">
+    <video
+      v-if="videoSource"
+      ref="salaVideoPlayer"
+      class="sala-video"
+      :src="videoSource"
+      autoplay
+      loop
+      muted
+      playsinline
+      @canplaythrough="videoPronto"
+      :class="{ 'visible': videoVisivel }"
+      :key="videoSource"
+    >
+      Seu navegador não suporta vídeos.
+    </video>
+    <div v-if="!videoSource && !erroAoCarregar" class="loading-video">
+      Carregando vídeo do quarto {{ idQuarto }}...
+    </div>
+    <div v-if="erroAoCarregar" class="error-video">
+      Erro ao carregar vídeo para o quarto {{ idQuarto }}. Verifique o nome do arquivo e o caminho da importação.
+    </div>
+
+    <div class="sala-overlay" :class="{ 'visible': videoVisivel }">
+      <button @click="voltarAoCorredor" class="voltar-button">Voltar ao Corredor</button>
+      <p class="room-id-display">Quarto: {{ idQuarto }}</p>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, watch, onMounted, defineProps, computed } from 'vue';
+import { useRouter } from 'vue-router';
+
+const props = defineProps({
+  idQuarto: { type: String, required: true }
+});
+
+const router = useRouter();
+const salaVideoPlayer = ref(null);
+const videoVisivel = ref(false);
+const erroAoCarregar = ref(false);
+
+// Importe TODOS os vídeos dos quartos aqui
+import video401File from '@/assets/videos/401_animated.mp4';
+import video402File from '@/assets/videos/402_animated.mp4';
+import video404_3File from '@/assets/videos/404_3_animated.mp4';
+
+const videosDisponiveis = {
+  '401': video401File,
+  '402': video402File,
+  '404_3': video404_3File
+};
+
+const videoSource = computed(() => {
+  const source = videosDisponiveis[props.idQuarto];
+  if (!source) {
+    console.error(`Fonte de vídeo não encontrada para o quarto ID: ${props.idQuarto}. Verifique se o ID '${props.idQuarto}' existe em 'videosDisponiveis' e se o arquivo foi importado corretamente.`);
+    erroAoCarregar.value = true;
+    return null;
+  }
+  erroAoCarregar.value = false;
+  return source;
+});
+
+const videoPronto = () => {
+  setTimeout(() => { videoVisivel.value = true; }, 100);
+};
+
+const voltarAoCorredor = () => {
+  router.push({ name: 'Corredor' });
+};
+
+watch(() => props.idQuarto, (newId, oldId) => {
+  if (newId !== oldId) {
+    console.log(`ID do quarto mudou para: ${newId}`);
+    videoVisivel.value = false; // Reseta para o fade-in do novo vídeo
+    // O :key="videoSource" no elemento <video> deve ajudar a forçar a recarga do vídeo
+    // Se o vídeo não recarregar automaticamente ao mudar a source, pode ser preciso:
+    // if (salaVideoPlayer.value) {
+    //   salaVideoPlayer.value.load(); // Força o <video> a carregar a nova source
+    //   salaVideoPlayer.value.play().catch(e => console.error("Erro ao tentar tocar novo vídeo da sala", e));
+    // }
+  }
+}, { immediate: true });
+
+onMounted(() => {
+  console.log(`SalaView montada para o quarto: ${props.idQuarto}`);
+  if (!videoSource.value) { // Checagem adicional se o vídeo não foi encontrado no computed inicial
+    erroAoCarregar.value = true;
+  }
+});
+</script>
+
+<style scoped>
+/* Estilos do SalaView (quartos) */
+.sala-container {
+  width: 100vw; height: 100vh; position: relative;
+  overflow: hidden; background-color: #000;
+}
+.sala-video {
+  position: absolute; top: 50%; left: 50%;
+  width: 100%; height: 100%;
+  object-fit: cover; transform: translate(-50%, -50%);
+  z-index: 1; opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+.sala-video.visible { opacity: 1; }
+.loading-video, .error-video {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%); color: white;
+  font-size: 1.5em; z-index: 3; text-align: center; padding: 10px;
+}
+.error-video { color: #ff6b6b; background-color: rgba(50,0,0,0.7); border-radius: 5px;}
+.sala-overlay {
+  position: absolute; bottom: 20px; left: 20px;
+  z-index: 2; opacity: 0;
+  transition: opacity 1s ease-in-out 0.5s;
+}
+.sala-overlay.visible { opacity: 1; }
+.voltar-button {
+  padding: 10px 20px; font-size: 1em; color: white;
+  background-color: rgba(0, 0, 0, 0.6);
+  border: 1px solid white; border-radius: 5px;
+  cursor: pointer; transition: background-color 0.3s;
+}
+.voltar-button:hover { background-color: rgba(255, 255, 255, 0.2); }
+.room-id-display { /* Apenas para debug, para ver qual quarto está carregado */
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: rgba(0,0,0,0.5);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+</style>
