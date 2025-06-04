@@ -20,7 +20,8 @@
       <div class="room-links">
         <button @click="irParaQuarto('401')" class="room-button">Quarto 401</button>
         <button @click="irParaQuarto('402')" class="room-button">Quarto 402</button>
-        <button @click="irParaQuarto('404_3')" class="room-button">Quarto 404.3</button>
+        <button @click="irParaQuarto('403')" class="room-button">Quarto 403</button>
+        <button @click="irParaQuarto('404_2')" class="room-button">Quarto 404</button>
       </div>
       <button @click="voltarAoMenu" class="back-to-menu-button">Voltar ao Menu Principal</button>
     </div>
@@ -29,10 +30,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router'; // Importe o useRouter
+import { useRouter } from 'vue-router';
 import corridorVideoFile from '@/assets/videos/corridor_animated.mp4';
 
-const router = useRouter(); // Inicialize o router
+const router = useRouter();
 const corridorVideoPlayer = ref(null);
 const corridorVideoSource = ref(corridorVideoFile);
 const videoIsReadyAndVisible = ref(false);
@@ -60,7 +61,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Estilos do corredor podem ser ajustados como quiser */
+/* Estilos do corredor com ajustes de posicionamento */
 .corridor-container {
   width: 100vw;
   height: 100vh;
@@ -78,8 +79,11 @@ onMounted(() => {
   object-fit: cover;
   transform: translate(-50%, -50%);
   z-index: 1;
-  opacity: 0;
+  opacity: 0; /* Para o efeito de fade-in inicial */
   transition: opacity 1.5s ease-in-out;
+
+  /* ADICIONE OU MODIFIQUE ESTA LINHA PARA O BRILHO: */
+  filter: brightness(200%); /* Exemplo: 30% mais brilho. Ajuste o valor como desejar (ex: 1.3, 150%, etc.) */
 }
 
 .corridor-video.visible {
@@ -87,17 +91,19 @@ onMounted(() => {
 }
 
 .corridor-overlay-content {
-  position: relative;
+  position: relative; /* Mantido relative pois height: 100% o faz preencher o pai */
   z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end; /* ALTERADO: Alinha conteúdo para baixo */
   height: 100%;
   text-align: center;
   color: white;
-  padding: 20px;
-  background-color: rgba(0, 0, 0, 0.4); /* Overlay um pouco mais escuro */
+  padding: 20px; /* Padding geral */
+  padding-bottom: 10vh; /* ADICIONADO: Espaço na parte inferior (10% da altura da tela) */
+  box-sizing: border-box; /* ADICIONADO: Para padding não aumentar altura total */
+  background-color: rgba(0, 0, 0, 0.4);
   opacity: 0;
   transition: opacity 1.5s ease-in-out 0.5s;
 }
@@ -109,7 +115,7 @@ onMounted(() => {
 .corridor-overlay-content h2 {
   font-size: 2.5em;
   margin-bottom: 20px;
-  text-shadow: 0 0 10px rgba(255, 0, 0, 0.7); /* Sombra vermelha para mistério */
+  text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
 }
 
 .corridor-overlay-content p {
@@ -119,7 +125,7 @@ onMounted(() => {
 
 .room-links {
   display: flex;
-  gap: 20px; /* Espaço entre os botões dos quartos */
+  gap: 20px;
   margin-bottom: 30px;
 }
 
@@ -127,7 +133,7 @@ onMounted(() => {
   padding: 12px 25px;
   font-size: 1.1em;
   color: #ccc;
-  background-color: rgba(50, 0, 0, 0.7); /* Vermelho escuro temático */
+  background-color: rgba(50, 0, 0, 0.7);
   border: 1px solid #ff4444;
   border-radius: 5px;
   cursor: pointer;

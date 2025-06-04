@@ -15,16 +15,39 @@
     >
       Seu navegador não suporta vídeos.
     </video>
-    <div v-if="!videoSource && !erroAoCarregar" class="loading-video">
-      Carregando vídeo do quarto {{ idQuarto }}...
+    <div v-if="!videoSource && !erroAoCarregar" class="loading-message">
+      Carregando quarto {{ idQuarto }}...
     </div>
-    <div v-if="erroAoCarregar" class="error-video">
-      Erro ao carregar vídeo para o quarto {{ idQuarto }}. Verifique o nome do arquivo e o caminho da importação.
+    <div v-if="erroAoCarregar" class="error-message">
+      Erro ao carregar vídeo para o quarto {{ idQuarto }}.<br>Verifique se o arquivo existe em src/assets/videos/ e se o ID está correto.
     </div>
 
     <div class="sala-overlay" :class="{ 'visible': videoVisivel }">
-      <button @click="voltarAoCorredor" class="voltar-button">Voltar ao Corredor</button>
-      <p class="room-id-display">Quarto: {{ idQuarto }}</p>
+      <button
+        v-if="idQuarto !== '404_2'"
+        @click="voltarAoCorredor"
+        class="sala-button voltar-button"
+      >
+        Voltar ao Corredor
+      </button>
+
+      <button
+        v-if="deveMostrarBotaoPegarChave"
+        @click="pegarChave"
+        :disabled="chaveDesteQuartoJaColetada"
+        class="sala-button pegar-chave-button"
+      >
+        {{ textoBotaoPegarChave }}
+      </button>
+      <p v-if="mensagemChaveColetada" class="feedback-message">{{ mensagemChaveColetada }}</p>
+
+      <button
+        v-if="idQuarto === '404_2'"
+        @click="voltarAoMenuPrincipal"
+        class="sala-button voltar-menu-button"
+      >
+        Voltar ao Menu Principal
+      </button>
     </div>
   </div>
 </template>
@@ -34,7 +57,10 @@ import { ref, watch, onMounted, defineProps, computed } from 'vue';
 import { useRouter } from 'vue-router';
 
 const props = defineProps({
-  idQuarto: { type: String, required: true }
+  idQuarto: { // Recebido da rota via props: true
+    type: String,
+    required: true
+  }
 });
 
 const router = useRouter();
@@ -42,21 +68,45 @@ const salaVideoPlayer = ref(null);
 const videoVisivel = ref(false);
 const erroAoCarregar = ref(false);
 
-// Importe TODOS os vídeos dos quartos aqui
+// --- Gerenciamento Simples de Chaves (NÃO PERSISTENTE ENTRE SESSÕES/RECARREGAMENTOS) ---
+// Para um jogo real, você usaria Pinia (Vuex) ou localStorage para persistir o estado das chaves.
+// Este é um objeto reativo simples para simular o inventário de chaves APENAS para esta sessão.
+const chavesColetadas = ref({
+  '401': false, // Chave para o quarto 402 (coletada no 401)
+  '402': false, // Chave para o quarto 403 (coletada no 402)
+  '403': false  // Chave para o quarto 404 (coletada no 403)
+});
+// ------------------------------------------------------------------------------------
+
+const chaveDesteQuartoJaColetada = computed(() => chavesColetadas.value[props.idQuarto]);
+const mensagemChaveColetada = ref('');
+
+const textoBotaoPegarChave = computed(() => {
+  return chaveDesteQuartoJaColetada.value ? "Chave Coletada!" : "Pegar Chave";
+});
+
+const deveMostrarBotaoPegarChave = computed(() => {
+  return ['401', '402', '403'].includes(props.idQuarto);
+});
+
+
+// Importe os vídeos dos quartos
 import video401File from '@/assets/videos/401_animated.mp4';
 import video402File from '@/assets/videos/402_animated.mp4';
-import video404_3File from '@/assets/videos/404_3_animated.mp4';
+import video403File from '@/assets/videos/403_animated.mp4';
+import video404_2File from '@/assets/videos/404_2_animated.mp4';
 
 const videosDisponiveis = {
   '401': video401File,
   '402': video402File,
-  '404_3': video404_3File
+  '403': video403File,
+  '404': video404_2File // Usando '404_2' como ID para o vídeo 404_2_animated.mp4
 };
 
 const videoSource = computed(() => {
   const source = videosDisponiveis[props.idQuarto];
   if (!source) {
-    console.error(`Fonte de vídeo não encontrada para o quarto ID: ${props.idQuarto}. Verifique se o ID '${props.idQuarto}' existe em 'videosDisponiveis' e se o arquivo foi importado corretamente.`);
+    console.error(`Fonte de vídeo não encontrada para o quarto ID: ${props.idQuarto}`);
     erroAoCarregar.value = true;
     return null;
   }
@@ -65,75 +115,137 @@ const videoSource = computed(() => {
 });
 
 const videoPronto = () => {
-  setTimeout(() => { videoVisivel.value = true; }, 100);
+  console.log(`Vídeo do quarto ${props.idQuarto} pronto.`);
+  setTimeout(() => {
+    videoVisivel.value = true;
+  }, 100);
 };
 
 const voltarAoCorredor = () => {
   router.push({ name: 'Corredor' });
 };
 
-watch(() => props.idQuarto, (newId, oldId) => {
-  if (newId !== oldId) {
-    console.log(`ID do quarto mudou para: ${newId}`);
-    videoVisivel.value = false; // Reseta para o fade-in do novo vídeo
-    // O :key="videoSource" no elemento <video> deve ajudar a forçar a recarga do vídeo
-    // Se o vídeo não recarregar automaticamente ao mudar a source, pode ser preciso:
-    // if (salaVideoPlayer.value) {
-    //   salaVideoPlayer.value.load(); // Força o <video> a carregar a nova source
-    //   salaVideoPlayer.value.play().catch(e => console.error("Erro ao tentar tocar novo vídeo da sala", e));
-    // }
+const voltarAoMenuPrincipal = () => {
+  router.push({ name: 'Menu' });
+};
+
+const pegarChave = () => {
+  if (!chaveDesteQuartoJaColetada.value && videosDisponiveis[props.idQuarto]) {
+    chavesColetadas.value[props.idQuarto] = true;
+    mensagemChaveColetada.value = `Você pegou a chave do Quarto ${props.idQuarto}!`;
+    console.log(`Chave para o próximo quarto (coletada no quarto ${props.idQuarto}) foi pega.`);
+    // Limpa a mensagem após alguns segundos
+    setTimeout(() => {
+      mensagemChaveColetada.value = '';
+    }, 3000);
   }
-}, { immediate: true });
+};
+
+// Observa mudanças no idQuarto para resetar o estado de "chave coletada" e fade-in do vídeo
+// se o mesmo componente SalaView for reutilizado para uma rota de quarto diferente.
+watch(() => props.idQuarto, (newId, oldId) => {
+  if (newId !== oldId) { // Só executa se o ID realmente mudou
+    console.log(`Navegando para o quarto: ${newId}`);
+    videoVisivel.value = false; // Reseta para o fade-in
+    mensagemChaveColetada.value = ''; // Limpa mensagem de chave anterior
+    // A chave :key="videoSource" na tag <video> ajuda a recarregar o vídeo.
+    // Mas para garantir, podemos chamar .load() se o player existir.
+    if (salaVideoPlayer.value && videosDisponiveis[newId]) {
+      // O computed property videoSource já terá atualizado
+      // Forçar o carregamento se a source mudou (o :key deve cuidar disso, mas como fallback)
+       salaVideoPlayer.value.load();
+       salaVideoPlayer.value.play().catch(e => console.warn("Play automático do novo vídeo da sala pode ter sido bloqueado", e));
+    } else if (!videosDisponiveis[newId]) {
+      erroAoCarregar.value = true;
+    }
+  }
+}, { immediate: false }); // Não precisa ser imediato aqui, pois onMounted cuida do estado inicial
 
 onMounted(() => {
   console.log(`SalaView montada para o quarto: ${props.idQuarto}`);
-  if (!videoSource.value) { // Checagem adicional se o vídeo não foi encontrado no computed inicial
+  videoVisivel.value = false; // Garante que comece invisível para o fade-in
+  mensagemChaveColetada.value = '';
+  if (!videoSource.value) {
     erroAoCarregar.value = true;
   }
+  // Lógica de acesso: (EXEMPLO MUITO SIMPLES - PRECISARIA DE UM SISTEMA DE INVENTÁRIO REAL)
+  // Se você está tentando acessar o quarto 402 sem a chave do 401, etc.
+  if (props.idQuarto === '402' && !chavesColetadas.value['401']) {
+    console.warn("Tentativa de acessar Quarto 402 sem a chave do 401!");
+    // router.push({ name: 'Corredor' }); // Exemplo: Joga de volta para o corredor
+    // alert("Você precisa da chave do Quarto 401 para entrar aqui!");
+  } else if (props.idQuarto === '403' && !chavesColetadas.value['402']) {
+    console.warn("Tentativa de acessar Quarto 403 sem a chave do 402!");
+  } else if (props.idQuarto === '404_2' && !chavesColetadas.value['403']) {
+    console.warn("Tentativa de acessar Quarto 404_2 sem a chave do 403!");
+  }
 });
+
 </script>
 
 <style scoped>
-/* Estilos do SalaView (quartos) */
 .sala-container {
   width: 100vw; height: 100vh; position: relative;
-  overflow: hidden; background-color: #000;
+  overflow: hidden; background-color: #1a1a1a; /* Fundo escuro */
 }
 .sala-video {
   position: absolute; top: 50%; left: 50%;
   width: 100%; height: 100%;
   object-fit: cover; transform: translate(-50%, -50%);
   z-index: 1; opacity: 0;
-  transition: opacity 1s ease-in-out;
+  transition: opacity 1.2s ease-in; /* Fade-in mais suave */
 }
 .sala-video.visible { opacity: 1; }
-.loading-video, .error-video {
+
+.loading-message, .error-message {
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%); color: white;
-  font-size: 1.5em; z-index: 3; text-align: center; padding: 10px;
+  font-size: 1.5em; z-index: 3; text-align: center;
+  padding: 20px; background-color: rgba(0,0,0,0.7); border-radius: 8px;
 }
-.error-video { color: #ff6b6b; background-color: rgba(50,0,0,0.7); border-radius: 5px;}
+.error-message { color: #ff8a80; }
+
 .sala-overlay {
-  position: absolute; bottom: 20px; left: 20px;
-  z-index: 2; opacity: 0;
-  transition: opacity 1s ease-in-out 0.5s;
+  position: absolute; bottom: 30px; /* Mais para cima */
+  left: 50%;
+  transform: translateX(-50%); /* Centraliza os botões horizontalmente */
+  z-index: 2;
+  display: flex;
+  gap: 15px; /* Espaço entre os botões */
+  opacity: 0;
+  transition: opacity 1s ease-in-out 0.8s; /* Delay para aparecer depois do vídeo */
 }
 .sala-overlay.visible { opacity: 1; }
-.voltar-button {
-  padding: 10px 20px; font-size: 1em; color: white;
-  background-color: rgba(0, 0, 0, 0.6);
-  border: 1px solid white; border-radius: 5px;
-  cursor: pointer; transition: background-color 0.3s;
+
+.sala-button {
+  padding: 12px 25px; font-size: 1.1em; color: #e0e0e0;
+  background-color: rgba(30, 30, 30, 0.8);
+  border: 1px solid #888; border-radius: 5px;
+  cursor: pointer; transition: background-color 0.3s, border-color 0.3s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
-.voltar-button:hover { background-color: rgba(255, 255, 255, 0.2); }
-.room-id-display { /* Apenas para debug, para ver qual quarto está carregado */
+.sala-button:hover {
+  background-color: rgba(50, 50, 50, 0.9);
+  border-color: #aaa;
+}
+.sala-button:disabled {
+  background-color: rgba(10, 10, 10, 0.7);
+  border-color: #555;
+  color: #777;
+  cursor: not-allowed;
+}
+
+.feedback-message {
   position: absolute;
-  top: 20px;
-  left: 20px;
-  background-color: rgba(0,0,0,0.5);
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 150, 0, 0.8);
   color: white;
-  padding: 5px 10px;
-  border-radius: 3px;
-  font-size: 0.9em;
+  padding: 10px 20px;
+  border-radius: 5px;
+  z-index: 3;
+  font-size: 1.1em;
+  transition: opacity 0.5s ease;
 }
 </style>

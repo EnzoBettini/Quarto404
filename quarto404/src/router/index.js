@@ -1,23 +1,27 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
 
-// Vamos renomear HomeView para MenuView e criar GameView
-import MenuView from '../components/MenuView.vue'; // Antiga HomeView, vamos renomear/modificar
-import GameView from '../components/CorredorView.vue';   // Uma nova view para simular o início do jogo
+import MenuView from '../components/MenuView.vue';
+import CorredorView from '../components/CorredorView.vue'; // Este é o seu GameView.vue
+import SalaView from '../components/SalaView.vue';     // Componente para os quartos
 
 const routes = [
     {
-        path: '/', // A raiz do site será o menu do jogo
+        path: '/',
         name: 'Menu',
         component: MenuView
     },
     {
-        path: '/jogo', // Rota para quando o jogo "começar"
-        name: 'Game',
-        component: GameView
+        path: '/corredor', // Rota para o corredor
+        name: 'Corredor',
+        component: CorredorView
+    },
+    {
+        path: '/quarto/:idQuarto', // Rota parametrizada para os quartos. Ex: /quarto/401
+        name: 'Sala',             // Nome da rota que usaremos para navegar
+        component: SalaView,
+        props: true // Permite que o :idQuarto seja passado como uma "prop" para o SalaView
     }
-    // A rota '/intro-video' não será mais uma view separada,
-    // o vídeo tocará na própria tela de menu.
 ];
 
 const router = createRouter({

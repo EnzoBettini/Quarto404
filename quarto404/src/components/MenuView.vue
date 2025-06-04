@@ -56,7 +56,7 @@ const startGame = () => {
       })
       .catch(error => {
         console.error("Erro ao tentar tocar o vídeo de introdução:", error);
-        router.push('/jogo');
+        router.push('/corredor');
       });
   }
 };
@@ -66,7 +66,7 @@ onMounted(() => {
     backgroundVideoPlayer.value.addEventListener('ended', () => {
       if (isVideoPlaying.value) {
         console.log("Vídeo de introdução terminou.");
-        router.push('/jogo');
+        router.push('/corredor');
       }
     });
   }
