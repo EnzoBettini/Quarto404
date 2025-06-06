@@ -116,10 +116,27 @@ const videoSource = computed(() => {
 
 const videoPronto = () => {
   console.log(`Vídeo do quarto ${props.idQuarto} pronto.`);
+  interacaoQuarto();
   setTimeout(() => {
     videoVisivel.value = true;
   }, 100);
 };
+
+const interacaoQuarto = () => {
+  console.log(`Quarto selecionado ${props.idQuarto}`);
+  switch (props.idQuarto) {
+    case '401':
+      console.log('Interação específica do quarto 401');
+      break;
+    case '402':
+      console.log('Interação específica do quarto 402');
+      break;
+    case '403':
+      console.log('Interação específica do quarto 403');
+      break;
+  }
+};
+
 
 const voltarAoCorredor = () => {
   router.push({ name: 'Corredor' });
