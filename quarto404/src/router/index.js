@@ -4,12 +4,18 @@ import { createRouter, createWebHistory } from 'vue-router';
 import MenuView from '../components/MenuView.vue';
 import CorredorView from '../components/CorredorView.vue'; // Este é o seu GameView.vue
 import SalaView from '../components/SalaView.vue';     // Componente para os quartos
+import CreditosView from '@/components/CreditosView.vue'; // Componente creditos
 
 const routes = [
     {
         path: '/',
         name: 'Menu',
         component: MenuView
+    },
+    {
+        path: '/creditos',
+        name: 'Creditos',
+        component: CreditosView
     },
     {
         path: '/corredor', // Rota para o corredor
