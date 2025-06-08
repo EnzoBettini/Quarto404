@@ -278,8 +278,7 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 2; /* Ficará acima do vídeo (z-index: 1) */
-  /* Este container não precisa de mais nada, pois o conteúdo
-     (seus componentes sala401, etc.) terá seu próprio layout. */
+  z-index: 2; 
+  pointer-events: none;
 }
 </style>
