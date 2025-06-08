@@ -31,9 +31,9 @@
             </div>
             <div
               ref="knob1Ref"
-              :class="['potentiometer', getProximityClass(value1, target1Min, target1Max)]"
+              :class="['potentiometer', definirVisualPorProximidade(value1, target1Min, target1Max)]"
               @mousedown="handleMouseDown1"
-              :style="{ cursor: isDragging1 ? 'grabbing' : 'grab' }"
+              :style="{ cursor: input1 ? 'grabbing' : 'grab' }"
             >
               <div 
                 class="knob-face" 
@@ -76,9 +76,9 @@
             </div>
             <div
               ref="knob2Ref"
-              :class="['potentiometer', getProximityClass(value2, target2Min, target2Max)]"
+              :class="['potentiometer', definirVisualPorProximidade(value2, target2Min, target2Max)]"
               @mousedown="handleMouseDown2"
-              :style="{ cursor: isDragging2 ? 'grabbing' : 'grab' }"
+              :style="{ cursor: input2 ? 'grabbing' : 'grab' }"
             >
               <div 
                 class="knob-face" 
@@ -121,9 +121,9 @@
             </div>
             <div
               ref="knob3Ref"
-              :class="['potentiometer', getProximityClass(value3, target3Min, target3Max)]"
+              :class="['potentiometer', definirVisualPorProximidade(value3, target3Min, target3Max)]"
               @mousedown="handleMouseDown3"
-              :style="{ cursor: isDragging3 ? 'grabbing' : 'grab' }"
+              :style="{ cursor: input3 ? 'grabbing' : 'grab' }"
             >
               <div 
                 class="knob-face" 
@@ -145,7 +145,7 @@
         </div>
       </div>
 
-      <div v-if="solved" class="success-indicator">UNLOCKED</div>
+      <div v-if="resolvido" class="success-indicator">LIBERADO</div>
     </div>
   </div>
 </template>
@@ -154,32 +154,36 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 
 
-// Estados reativos
+// o valor de cada input
 const value1 = ref(0)
 const value2 = ref(0)
 const value3 = ref(0)
-const solved = ref(false)
-const isDragging1 = ref(false)
-const isDragging2 = ref(false)
-const isDragging3 = ref(false)
 
-// Referências dos elementos
+//booleano para se os 3 valores estao corretos
+const resolvido = ref(false)
+
+// Valida qual input esta sendo usado
+const input1 = ref(false)
+const input2 = ref(false)
+const input3 = ref(false)
+
+// Referências inputs rotatorios, fica observando qualquer alteração
 const knob1Ref = ref(null)
 const knob2Ref = ref(null)
 const knob3Ref = ref(null)
 
-// Valores alvo
-const target1Min = 63
+// Valores alvo no puzzle, sendo a faixa de valores em q o input tem q estar para ficar correto
+const target1Min = 64
 const target1Max = 65
 const target2Min = 12
-const target2Max = 15
+const target2Max = 13
 const target3Min = 87
 const target3Max = 88
 
 // Emits para comunicação com componente pai
 const emit = defineEmits(['exit'])
 
-// Computed para verificar se está resolvido
+// Computed para verificar se o valor que esta nos inputs correspondem à margem de valor
 const isCorrect = computed(() => {
   const isKnob1Correct = value1.value >= target1Min && value1.value <= target1Max
   const isKnob2Correct = value2.value >= target2Min && value2.value <= target2Max
@@ -188,15 +192,15 @@ const isCorrect = computed(() => {
   return isKnob1Correct && isKnob2Correct && isKnob3Correct
 })
 
-// Watcher para verificar quando o puzzle é resolvido
+// Watcher para verificar quando o puzzle é resolvido, fica verificando se ele achou o valor, ou n
 watch(isCorrect, (newValue) => {
-  if (newValue && !solved.value) {
-    solved.value = true
+  if (newValue && !resolvido.value) {
+    resolvido.value = true
     setTimeout(() => {
-      alert("Você encontrou a frequência correta! O mecanismo foi desbloqueado...")
+     
     }, 1000)
   } else if (!newValue) {
-    solved.value = false
+    resolvido.value = false
   }
 })
 
@@ -205,14 +209,17 @@ const handleExit = () => {
   emit('exit')
 }
 
-// Funções utilitárias
-const getProximityClass = (value, minTarget, maxTarget) => {
+// funcao para fazer a mudanca de cor conforme chega proximo à opção buscada
+const definirVisualPorProximidade = (value, minTarget, maxTarget) => {
   if (value >= minTarget && value <= maxTarget) return "correct"
   if (value >= minTarget - 5 && value <= maxTarget + 5) return "close"
   return "far"
 }
 
-const calculateAngle = (event, element) => {
+
+//pega o local do mouse e calcula o angulo em relação ao ponto central do potenciometro, depois envia para o
+//  conversorAnguloValor
+const calcularAngulo = (event, element) => {
   const rect = element.getBoundingClientRect()
   const centerX = rect.left + rect.width / 2
   const centerY = rect.top + rect.height / 2
@@ -220,7 +227,8 @@ const calculateAngle = (event, element) => {
   return (angle * 180) / Math.PI
 }
 
-const angleToValue = (angle) => {
+//transforma o angulo conseguido na função calcularAngulo para um valor de 0 à 100
+const conversorAnguloValor = (angle) => {
   let normalizedAngle = angle + 90
   if (normalizedAngle < 0) normalizedAngle += 360
   if (normalizedAngle > 360) normalizedAngle -= 360
@@ -229,58 +237,62 @@ const angleToValue = (angle) => {
   return Math.round(value)
 }
 
-const applyTremor = () => {
+//caracteristica visual, ele é utilizado para fazer um mini tremor conforme meche o potenciometro
+const adicionarTremor = () => {
   return Math.random() * 0.3 - 0.15
 }
 
+//faz o valor de 0 à 100 conforme a rotação do potenciometro
 const valueToRotation = (value) => {
-  const tremor = applyTremor()
+  const tremor = adicionarTremor()
   return (value / 100) * 270 - 135 + tremor
 }
 
 // Handlers de mouse
 const handleMouseDown1 = (e) => {
-  isDragging1.value = true
+  input1.value = true
   e.preventDefault()
 }
 
 const handleMouseDown2 = (e) => {
-  isDragging2.value = true
+  input2.value = true
   e.preventDefault()
 }
 
 const handleMouseDown3 = (e) => {
-  isDragging3.value = true
+  input3.value = true
   e.preventDefault()
 }
 
+//faz libera o calculo de angulo se o usuario clicar em um potenciometro, fazendo assim com q ao clicar seja
+//possivel girar o potenciometro desejado
 const handleMouseMove = (e) => {
-  if (isDragging1.value && knob1Ref.value) {
-    const angle = calculateAngle(e, knob1Ref.value)
-    value1.value = angleToValue(angle)
+  if (input1.value && knob1Ref.value) {
+    const angle = calcularAngulo(e, knob1Ref.value)
+    value1.value = conversorAnguloValor(angle)
   }
-  if (isDragging2.value && knob2Ref.value) {
-    const angle = calculateAngle(e, knob2Ref.value)
-    value2.value = angleToValue(angle)
+  if (input2.value && knob2Ref.value) {
+    const angle = calcularAngulo(e, knob2Ref.value)
+    value2.value = conversorAnguloValor(angle)
   }
-  if (isDragging3.value && knob3Ref.value) {
-    const angle = calculateAngle(e, knob3Ref.value)
-    value3.value = angleToValue(angle)
+  if (input3.value && knob3Ref.value) {
+    const angle = calcularAngulo(e, knob3Ref.value)
+    value3.value = conversorAnguloValor(angle)
   }
 }
 
 const handleMouseUp = () => {
-  isDragging1.value = false
-  isDragging2.value = false
-  isDragging3.value = false
+  input1.value = false
+  input2.value = false
+  input3.value = false
 }
 
-// Lifecycle hooks
+// controla as interaçoes do usuário apenas quando ele está dentro do componente
 onMounted(() => {
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', handleMouseUp)
 })
-
+// desativa as interaçoes do usuário quando ele já está fora do componente
 onUnmounted(() => {
   document.removeEventListener('mousemove', handleMouseMove)
   document.removeEventListener('mouseup', handleMouseUp)
@@ -289,21 +301,17 @@ onUnmounted(() => {
 
 <style scoped>
 .horror-container {
-  /* --- ADICIONE ESTAS PROPRIEDADES --- */
+
   position: absolute;
-  top: -850%; /* Por padrão, 50% para alinhar ao centro vertical */
-  left: 50%; /* 50% para alinhar ao centro horizontal */
-  transform: translate(-50%, -50%); /* Truque para centralizar o painel perfeitamente */
-  z-index: 10; /* Um z-index alto para garantir que ele fique na frente de tudo */
-  /* ------------------------------------ */
-
-
+  top: -850%; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  z-index: 10; 
   display: flex;
   justify-content: center;
   align-items: center;
   font-family: 'Courier New', monospace;
   user-select: none;
-  /* Fundo transparente removido */
   pointer-events: auto;
 }
 
