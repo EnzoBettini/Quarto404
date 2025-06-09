@@ -152,7 +152,9 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import audioFile from '@/assets/audio/audiosamples/Samples/interferencia_01.wav';
 
+let audio = null;
 
 // o valor de cada input
 const value1 = ref(0)
@@ -199,6 +201,12 @@ watch(isCorrect, (newValue) => {
     setTimeout(() => {
      
     }, 1000)
+     console.log("Componente Sala402 desmontado: Parando áudio.");
+    if (audio) {
+        audio.pause();
+        audio.src = '';
+        audio = null;
+    }
   } else if (!newValue) {
     resolvido.value = false
   }
@@ -291,11 +299,22 @@ const handleMouseUp = () => {
 onMounted(() => {
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', handleMouseUp)
+       audio = new Audio(audioFile);
+    audio.loop = true;
+    audio.play().catch(error => {
+        console.warn("A reprodução automática do áudio foi bloqueada pelo navegador:", error);
+    });
 })
 // desativa as interaçoes do usuário quando ele já está fora do componente
 onUnmounted(() => {
   document.removeEventListener('mousemove', handleMouseMove)
   document.removeEventListener('mouseup', handleMouseUp)
+   console.log("Componente Sala402 desmontado: Parando áudio.");
+    if (audio) {
+        audio.pause();
+        audio.src = '';
+        audio = null;
+    }
 })
 </script>
 
