@@ -14,7 +14,10 @@
 import { ref } from 'vue';
 import Overlay from '../efeitos/Overlay.vue';
 import puzzle401 from './puzzle401.vue'; 
+import { onMounted, onUnmounted } from 'vue';
+import audioFile from '@/assets/audio/audiosamples/Samples/ambiente_sala401.wav';
 
+let audio = null;
 //variavel booleana para ativar o puzzle ou desativar
 const puzzleVisivel = ref(false);
 
@@ -27,6 +30,25 @@ const abrirPuzzle = () => {
 const fecharPuzzle = () => {
   puzzleVisivel.value = false; //
 };
+onMounted(() => {
+    console.log("Componente Sala401 montado: Iniciando áudio.");
+    audio = new Audio(audioFile);
+    audio.loop = true;
+    audio.play().catch(error => {
+        console.warn("A reprodução automática do áudio foi bloqueada pelo navegador:", error);
+    });
+});
+
+onUnmounted(() => {
+    console.log("Componente Sala401 desmontado: Parando áudio.");
+    if (audio) {
+        audio.pause();
+        audio.src = '';
+        audio = null;
+    }
+
+});
+
 </script>
 
 <style scoped>
