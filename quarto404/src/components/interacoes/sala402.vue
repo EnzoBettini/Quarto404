@@ -4,7 +4,7 @@
 
 <script setup>
 import { onMounted, onUnmounted } from 'vue';
-import audioFile from '@/assets/audio/som_ambiente_402.mp3';
+import audioFile from '@/assets/audio/audiosamples/Samples/Ambiente402.mp3';
 
 let audio = null;
 
