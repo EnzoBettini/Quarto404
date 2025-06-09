@@ -1,5 +1,5 @@
 /* Pessoal aqui será o arquivo do que será
-    clicável no jogo, ou seja, itens que o jogaodr poderá
+    clicável no jogo, ou seja, itens que o jogador poderá
     clicar e interagir precisam ser recortados do fundo 
     e colados o png do objeto aqui com o nome de marcação
 */
@@ -11,5 +11,9 @@ export const itens = [
         //a pasta não deve possuir o caminho ../, visto que ele nao suporta esse tipo de procura, por isso
         //a pasta itens foi transferida para o public, por favor inserir as imagens de overlay para a pasta 
         //itens
+    },
+    {
+        nome:'geladeira_402',
+        caminhoImagem:'/itens/geladeira_402.png',
     }
 ]

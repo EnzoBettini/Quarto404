@@ -61,7 +61,7 @@
 import { ref, watch, onMounted, defineProps, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import Sala401 from './interacoes/sala401.vue';
-//import Sala402 from './interacoes/sala402.vue';
+import Sala402 from './interacoes/sala402.vue';
 //import Sala403 from './interacoes/sala403.vue';
 
 
@@ -109,7 +109,7 @@ import video404_2File from '@/assets/videos/404_2_animated.mp4';
 //conforme o ip que chega, esse mapaDeInteracoes move o componente correto
 const mapaDeInteracoes = {
   '401': Sala401,
-  //'402': Sala402,
+  '402': Sala402,
   //'403': Sala403
 };
 
