@@ -15,5 +15,21 @@ export const itens = [
     {
         nome:'geladeira_402',
         caminhoImagem:'/itens/geladeira_402.png',
+    },
+    {
+        nome:'quarto401',
+        caminhoImagem:'/itens/quarto401.png',
+    },
+    {
+        nome:'quarto402',
+        caminhoImagem:'/itens/quarto402.png',
+    },
+    {
+        nome:'quarto403',
+        caminhoImagem:'/itens/quarto403.png',
+    },
+    {
+        nome:'quarto404',
+        caminhoImagem:'/itens/quarto404.png',
     }
 ]
