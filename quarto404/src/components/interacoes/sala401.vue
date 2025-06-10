@@ -55,8 +55,8 @@ onUnmounted(() => {
 
 .item-container {
   position: absolute;
-  top: -420%;
-  left: 12%; 
+  top: -103%;
+  left: 16%; 
 
   transform: translate(-50%, -50%);
   width: 13vw;
