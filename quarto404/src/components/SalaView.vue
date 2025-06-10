@@ -1,18 +1,8 @@
 <template>
   <div class="sala-container">
-    <video
-      v-if="videoSource && !mostrarImagem402a"
-      ref="salaVideoPlayer"
-      class="sala-video"
-      :src="videoSource"
-      autoplay
-      loop
-      muted
-      playsinline
-      @canplaythrough="videoPronto"
-      :class="{ 'visible': videoVisivel }"
-      :key="videoSource"
-    >
+    <video v-if="videoSource && !mostrarImagem402a" ref="salaVideoPlayer" class="sala-video" :src="videoSource" autoplay
+      v-bind:loop="idQuarto !== '404_2'" playsinline @canplaythrough="videoPronto" :class="{ 'visible': videoVisivel }"
+      :key="videoSource" @ended="aoTerminarVideo">
       Seu navegador não suporta vídeos.
     </video>
 
@@ -23,44 +13,28 @@
       Carregando quarto {{ idQuarto }}...
     </div>
     <div v-if="erroAoCarregar" class="error-message">
-      Erro ao carregar vídeo para o quarto {{ idQuarto }}.<br />Verifique se o arquivo existe em src/assets/videos/ e se o ID está correto.
+      Erro ao carregar vídeo para o quarto {{ idQuarto }}.<br />Verifique se o arquivo existe em src/assets/videos/ e se
+      o ID está correto.
     </div>
 
     <div class="sala-overlay" :class="{ 'visible': videoVisivel }">
-      <button
-        v-if="idQuarto !== '404_2'"
-        @click="voltarAoCorredor"
-        class="sala-button voltar-button"
-      >
+      <button v-if="idQuarto !== '404_2'" @click="voltarAoCorredor" class="sala-button voltar-button">
         Voltar ao Corredor
       </button>
 
       <div class="interacoes-container">
-        <Sala402
-          v-if="idQuarto === '402'"
-          @puzzle-opened="mostrarImagem402a = true"
-          @puzzle-closed="mostrarImagem402a = false"
-          @show-image="onShowImage"
-          @hide-image="onHideImage"
-        />
+        <Sala402 v-if="idQuarto === '402'" @puzzle-opened="mostrarImagem402a = true"
+          @puzzle-closed="mostrarImagem402a = false" @show-image="onShowImage" @hide-image="onHideImage" />
         <component v-else :is="componenteDeInteracaoAtual" />
       </div>
 
-      <button
-        v-if="deveMostrarBotaoPegarChave"
-        @click="pegarChave"
-        :disabled="chaveDesteQuartoJaColetada"
-        class="sala-button pegar-chave-button"
-      >
+      <button v-if="deveMostrarBotaoPegarChave" @click="pegarChave" :disabled="chaveDesteQuartoJaColetada"
+        class="sala-button pegar-chave-button">
         {{ textoBotaoPegarChave }}
       </button>
       <p v-if="mensagemChaveColetada" class="feedback-message">{{ mensagemChaveColetada }}</p>
 
-      <button
-        v-if="idQuarto === '404_2'"
-        @click="voltarAoMenuPrincipal"
-        class="sala-button voltar-menu-button"
-      >
+      <button v-if="idQuarto === '404_2'" @click="voltarAoMenuPrincipal" class="sala-button voltar-menu-button">
         Voltar ao Menu Principal
       </button>
     </div>
@@ -116,7 +90,7 @@ const deveMostrarBotaoPegarChave = computed(() =>
 import video401File from '@/assets/videos/401_animated.mp4';
 import video402File from '@/assets/videos/402_animated.mp4';
 import video403File from '@/assets/videos/403_animated.mp4';
-import video404_2File from '@/assets/videos/404_2_animated.mp4';
+import video404_2File from '@/assets/videos/404_animated.mp4';
 
 const mapaDeInteracoes = {
   '401': Sala401,
@@ -188,6 +162,12 @@ onMounted(() => {
     erroAoCarregar.value = true;
   }
 });
+
+function aoTerminarVideo() {
+  if (props.idQuarto === '404_2') {
+    router.push({ name: 'Menu' });
+  }
+}
 </script>
 
 <style scoped>
