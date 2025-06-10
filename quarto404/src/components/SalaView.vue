@@ -18,25 +18,13 @@
     </div>
 
     <div class="sala-overlay" :class="{ 'visible': videoVisivel }">
-      <button v-if="idQuarto !== '404_2'" @click="voltarAoCorredor" class="sala-button voltar-button">
-        Voltar ao Corredor
-      </button>
+      <Voltar rota="/corredor"/>
 
       <div class="interacoes-container">
         <Sala402 v-if="idQuarto === '402'" @puzzle-opened="mostrarImagem402a = true"
           @puzzle-closed="mostrarImagem402a = false" @show-image="onShowImage" @hide-image="onHideImage" />
         <component v-else :is="componenteDeInteracaoAtual" />
       </div>
-
-      <button v-if="deveMostrarBotaoPegarChave" @click="pegarChave" :disabled="chaveDesteQuartoJaColetada"
-        class="sala-button pegar-chave-button">
-        {{ textoBotaoPegarChave }}
-      </button>
-      <p v-if="mensagemChaveColetada" class="feedback-message">{{ mensagemChaveColetada }}</p>
-
-      <button v-if="idQuarto === '404_2'" @click="voltarAoMenuPrincipal" class="sala-button voltar-menu-button">
-        Voltar ao Menu Principal
-      </button>
     </div>
   </div>
 </template>
@@ -46,6 +34,7 @@ import { ref, watch, onMounted, defineProps, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import Sala401 from './interacoes/sala401.vue';
 import Sala402 from './interacoes/sala402.vue';
+import Voltar from './Voltar.vue';
 
 // Import the image file properly
 import img402a from '@/assets/images/402a.png';
