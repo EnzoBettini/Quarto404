@@ -18,5 +18,16 @@ export const membros = [
     nome: "Filipe Senra Gonçalves",
     github: "https://github.com/filipesgoncalves",
     linkedin: "https://www.linkedin.com/in/filipe-gonçalves-12139b304/"
+  },
+    {
+    nome: "Gabriel Maia",
+    github: "https://github.com/gabrielhcmaia",
+    linkedin: "https://www.linkedin.com/in/gabrieldamaia/"
+  },
+  {
+    nome: "Thiago Zulli",
+    github: "https://github.com/Chizuli",
+    linkedin: "https://www.linkedin.com/in/thiago-fernando-zulli/"
   }
+
 ];
