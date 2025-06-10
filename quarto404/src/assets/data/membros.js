@@ -21,13 +21,13 @@ export const membros = [
   },
   {
     nome: "Gabriel Maia",
+    github: "https://github.com/gabrielhcmaia",
     linkedin: "https://www.linkedin.com/in/gabrieldamaia/"
-    // adicione o github de vcs seus pamonha
   },
   {
     nome: "Thiago Zulli",
+    github: "https://github.com/Chizuli",
     linkedin: "https://www.linkedin.com/in/thiago-fernando-zulli/"
-    // adicione o github de vcs seus pamonha
   }
 
 ];
