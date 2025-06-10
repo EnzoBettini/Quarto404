@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="sala402-wrapper">
     <div v-if="!puzzleVisivel" class="item-container" @click="abrirPuzzle"></div>
 
     <Transition name="fade" mode="out-in">
@@ -63,10 +63,11 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+
 .item-container {
-  position: absolute;
-  top: -1000%;
-  left: 154%;
+  position:absolute;
+  top: -159%;
+  left: 120%;
   width: 290px;
   height: 500px;
   cursor: pointer;
@@ -74,10 +75,4 @@ onUnmounted(() => {
   z-index: 10;
 }
 
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.6s ease;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
 </style>

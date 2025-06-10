@@ -1,33 +1,41 @@
 <template>
-  <div>
-    <div v-if="!pinPadVisivel" class="puzzle-container">
-      <button @click="sairPuzzle" class="close-button" aria-label="Fechar puzzle">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
+  <div class="puzzle-container">
+    <!-- Return Arrow Button -->
+    <button @click="sairPuzzle" class="close-button" aria-label="Fechar puzzle">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
 
-      <img :src="img402a" alt="Puzzle 402" class="puzzle-image" />
+    <!-- Open Pin Pad Button -->
+    <button @click="abrirPinPad" class="open-pinpad-button">Abrir Pin Pad</button>
 
-      <button @click="abrirPinPad" class="open-pinpad-button" aria-haspopup="dialog" :aria-expanded="pinPadVisivel.toString()">
-        Abrir Pin Pad
-      </button>
-    </div>
-
+    <!-- Pin Pad Modal -->
     <div v-if="pinPadVisivel" class="pinpad-backdrop" @click.self="fecharPinPad">
-      <div class="pinpad-modal" role="dialog" aria-modal="true" @click.stop>
-        <!-- PinPad inputs here -->
+      <div class="pinpad-modal" @click.stop>
+        <h3>Digite o código:</h3>
+        <div class="inputs-container">
+          <div v-for="(digit, index) in codigoInput" :key="index" class="digit-control">
+            <button class="arrow-btn" @click="incrementDigit(index)">▲</button>
+            <div class="digit-display">{{ digit }}</div>
+            <button class="arrow-btn" @click="decrementDigit(index)">▼</button>
+          </div>
+        </div>
+        <div class="actions">
+          <button @click="validarCodigo">Confirmar</button>
+          <button @click="fecharPinPad">Cancelar</button>
+        </div>
+        <p v-if="erroCodigo" class="error-msg">Código incorreto. Tente novamente.</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref } from 'vue';
 import successSound from '@/assets/audio/audiosamples/Samples/puzzlesuccess.mp3';
-import img402a from '@/assets/images/402a.png';
 
-const emit = defineEmits(['exit', 'success']);
+const emit = defineEmits(['exit']);
 
 const pinPadVisivel = ref(false);
 const codigoInput = ref([0, 0, 0]);
@@ -53,14 +61,13 @@ function incrementDigit(index) {
 }
 
 function decrementDigit(index) {
-  codigoInput.value[index] = (codigoInput.value[index] - 1 + 10) % 10;
+  codigoInput.value[index] = (codigoInput.value[index] + 9) % 10;
 }
 
 function validarCodigo() {
   const codigoDigitado = codigoInput.value.join('');
   if (codigoDigitado === codigoCorreto) {
     audioSucesso.play().catch(err => console.warn('Erro ao tocar áudio:', err));
-    emit('success');
     fecharPinPad();
   } else {
     erroCodigo.value = true;
@@ -70,19 +77,6 @@ function validarCodigo() {
 function sairPuzzle() {
   emit('exit');
 }
-
-function handleKeyDown(e) {
-  if (e.key === 'Escape' && pinPadVisivel.value) {
-    fecharPinPad();
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown);
-});
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyDown);
-});
 </script>
 
 <style scoped>
@@ -93,6 +87,8 @@ onUnmounted(() => {
   transform: translate(-50%, -50%);
   background: transparent;
   padding: 20px;
+  z-index: 10;
+  border-radius: 8px;
   pointer-events: auto;
   min-width: 300px;
   min-height: 200px;
@@ -102,16 +98,11 @@ onUnmounted(() => {
   gap: 15px;
 }
 
-.puzzle-image {
-  max-width: 100%;
-  height: auto;
-  margin-bottom: 10px;
-}
-
+/* Return Arrow */
 .close-button {
   position: absolute;
-  top: 20px;
-  left: -20px;
+  top: 10px;
+  left: 10px;
   background: none;
   border: none;
   cursor: pointer;
@@ -121,6 +112,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 30;
 }
 .close-button:hover {
   color: #38b000;
@@ -150,19 +142,80 @@ onUnmounted(() => {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
+  z-index: 20;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 100;
-  pointer-events: auto;
+  transform: translateY(-100px);
 }
 
 .pinpad-modal {
   background: #191a19;
   padding: 20px;
-  pointer-events: auto;
   border-radius: 8px;
   min-width: 300px;
   color: white;
+}
+
+.inputs-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 10px 0 20px 0;
+}
+
+.digit-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  user-select: none;
+}
+
+.digit-display {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 8px 0;
+  width: 40px;
+  text-align: center;
+}
+
+.arrow-btn {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  user-select: none;
+  padding: 2px 5px;
+  color: #0d3d0d;
+  transition: color 0.2s ease;
+}
+.arrow-btn:hover {
+  color: #38b000;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+.actions button {
+  padding: 8px 15px;
+  font-size: 1em;
+  border: none;
+  background-color: #0d3d0d;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.actions button:hover {
+  background-color: #145214;
+}
+
+.error-msg {
+  color: red;
+  margin-top: 10px;
+  font-weight: bold;
 }
 </style>
