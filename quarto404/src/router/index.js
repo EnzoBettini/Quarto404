@@ -5,6 +5,8 @@ import MenuView from '../components/MenuView.vue';
 import CorredorView from '../components/CorredorView.vue'; // Este é o seu GameView.vue
 import SalaView from '../components/SalaView.vue';     // Componente para os quartos
 import CreditosView from '@/components/CreditosView.vue'; // Componente creditos
+import CablePuzzle from '@/components/interacoes/CablePuzzle.vue'; // Componente do puzzle de cabos
+
 
 const routes = [
     {
@@ -27,7 +29,13 @@ const routes = [
         name: 'Sala',             // Nome da rota que usaremos para navegar
         component: SalaView,
         props: true // Permite que o :idQuarto seja passado como uma "prop" para o SalaView
+    },
+    {
+        path: '/quarto/403/puzzle',
+        name: 'CablePuzzle',
+        component: () => import('@/components/interacoes/CablePuzzle.vue')
     }
+
 ];
 
 const router = createRouter({
