@@ -13,5 +13,10 @@ export const membros = [
     nome: "Enzo Ayres Bettini",
     github: "https://github.com/EnzoBettini",
     linkedin: "https://www.linkedin.com/in/enzo-ayres-bettini-744a692bb/"
+  },
+  {
+    nome: "Filipe Senra Gonçalves",
+    github: "https://github.com/filipesgoncalves",
+    linkedin: "https://www.linkedin.com/in/filipe-gonçalves-12139b304/"
   }
 ];

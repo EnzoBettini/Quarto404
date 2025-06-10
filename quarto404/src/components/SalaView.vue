@@ -21,6 +21,7 @@
     <div v-if="erroAoCarregar" class="error-message">
       Erro ao carregar vídeo para o quarto {{ idQuarto }}.<br>Verifique se o arquivo existe em src/assets/videos/ e se o ID está correto.
     </div>
+    
 
     <div class="sala-overlay" :class="{ 'visible': videoVisivel }">
       <button
@@ -30,6 +31,10 @@
       >
         Voltar ao Corredor
       </button>
+
+      <div class="interacoes-container">
+        <component :is="componenteDeInteracaoAtual" />
+      </div>
 
       <button
         v-if="deveMostrarBotaoPegarChave"
@@ -55,6 +60,10 @@
 <script setup>
 import { ref, watch, onMounted, defineProps, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import Sala401 from './interacoes/sala401.vue';
+import Sala402 from './interacoes/sala402.vue';
+//import Sala403 from './interacoes/sala403.vue';
+
 
 const props = defineProps({
   idQuarto: { // Recebido da rota via props: true
@@ -62,6 +71,7 @@ const props = defineProps({
     required: true
   }
 });
+
 
 const router = useRouter();
 const salaVideoPlayer = ref(null);
@@ -96,6 +106,13 @@ import video402File from '@/assets/videos/402_animated.mp4';
 import video403File from '@/assets/videos/403_animated.mp4';
 import video404_2File from '@/assets/videos/404_2_animated.mp4';
 
+//conforme o ip que chega, esse mapaDeInteracoes move o componente correto
+const mapaDeInteracoes = {
+  '401': Sala401,
+  '402': Sala402,
+  //'403': Sala403
+};
+
 const videosDisponiveis = {
   '401': video401File,
   '402': video402File,
@@ -116,27 +133,15 @@ const videoSource = computed(() => {
 
 const videoPronto = () => {
   console.log(`Vídeo do quarto ${props.idQuarto} pronto.`);
-  interacaoQuarto();
   setTimeout(() => {
     videoVisivel.value = true;
   }, 100);
 };
 
-const interacaoQuarto = () => {
-  console.log(`Quarto selecionado ${props.idQuarto}`);
-  switch (props.idQuarto) {
-    case '401':
-      console.log('Interação específica do quarto 401');
-      break;
-    case '402':
-      console.log('Interação específica do quarto 402');
-      break;
-    case '403':
-      console.log('Interação específica do quarto 403');
-      break;
-  }
-};
-
+//permite mapear qual interação será utilizada conforme o props que usa o id da pagina
+const componenteDeInteracaoAtual = computed(() => {
+  return mapaDeInteracoes[props.idQuarto] || null;
+});
 
 const voltarAoCorredor = () => {
   router.push({ name: 'Corredor' });
@@ -231,6 +236,7 @@ onMounted(() => {
   gap: 15px; /* Espaço entre os botões */
   opacity: 0;
   transition: opacity 1s ease-in-out 0.8s; /* Delay para aparecer depois do vídeo */
+   z-index: 3;
 }
 .sala-overlay.visible { opacity: 1; }
 
@@ -264,5 +270,15 @@ onMounted(() => {
   z-index: 3;
   font-size: 1.1em;
   transition: opacity 0.5s ease;
+}
+
+.interacoes-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2; 
+  pointer-events: none;
 }
 </style>

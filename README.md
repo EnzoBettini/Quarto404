@@ -18,7 +18,7 @@ Quarto 404 é uma experiência narrativa interativa onde o jogador navega entre 
 quarto404/
 ├── public/
 │   ├── index.html         # Arquivo HTML principal
-│   └── ...                # Outros assets públicos
+│   └── itens                # Para cada objeto interativo do jogo
 ├── src/
 │   ├── assets/            # Arquivos estáticos processados pelo build
 │   │   ├── videos/        # Vídeos do jogo
