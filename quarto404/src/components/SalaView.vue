@@ -18,7 +18,7 @@
     </div>
 
     <div class="sala-overlay" :class="{ 'visible': videoVisivel }">
-      <Voltar rota="/corredor"/>
+      <Voltar v-if="props.idQuarto !== '404_2'" rota="/corredor"/>
 
       <div class="interacoes-container">
         <Sala402 v-if="idQuarto === '402'" @puzzle-opened="mostrarImagem402a = true"
