@@ -32,9 +32,9 @@
             <div
               ref="knob1Ref"
               :class="['potentiometer', definirVisualPorProximidade(value1, target1Min, target1Max)]"
-              @mousedown="handleMouseDown1"
-              :style="{ cursor: input1 ? 'grabbing' : 'grab' }"
-            >
+              @mousedown="event => { if (!resolvido) handleMouseDown1(event) }"
+              :style="{ cursor: input1 ? 'grabbing' : (resolvido ? 'not-allowed' : 'grab') }"
+              >              
               <div 
                 class="knob-face" 
                 :style="{ transform: `rotate(${valueToRotation(value1)}deg)` }"
@@ -74,12 +74,12 @@
                 </div>
               </div>
             </div>
-            <div
+             <div
               ref="knob2Ref"
               :class="['potentiometer', definirVisualPorProximidade(value2, target2Min, target2Max)]"
-              @mousedown="handleMouseDown2"
-              :style="{ cursor: input2 ? 'grabbing' : 'grab' }"
-            >
+              @mousedown="event => { if (!resolvido) handleMouseDown2(event) }"
+              :style="{ cursor: input1 ? 'grabbing' : (resolvido ? 'not-allowed' : 'grab') }"
+              >    
               <div 
                 class="knob-face" 
                 :style="{ transform: `rotate(${valueToRotation(value2)}deg)` }"
@@ -119,12 +119,12 @@
                 </div>
               </div>
             </div>
-            <div
+             <div
               ref="knob3Ref"
               :class="['potentiometer', definirVisualPorProximidade(value3, target3Min, target3Max)]"
-              @mousedown="handleMouseDown3"
-              :style="{ cursor: input3 ? 'grabbing' : 'grab' }"
-            >
+              @mousedown="event => { if (!resolvido) handleMouseDown3(event) }"
+              :style="{ cursor: input1 ? 'grabbing' : (resolvido ? 'not-allowed' : 'grab') }"
+              >    
               <div 
                 class="knob-face" 
                 :style="{ transform: `rotate(${valueToRotation(value3)}deg)` }"
@@ -147,22 +147,106 @@
 
       <div v-if="resolvido" class="success-indicator">LIBERADO</div>
     </div>
+  <div v-if="resolvido && dialogoAtivo" class="dialogo-final" @click="proximaMensagem">
+  {{ textoAtual }}
+</div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import audioFile from '@/assets/audio/audiosamples/Samples/interferencia_01.wav';
+import { watchEffect } from 'vue'
 
 let audio = null;
+const audioPlayer = ref(null);
+let volumeAtual = 1;
+let volumeAlvo = 1;
+
+const currentVolume = ref(1) // começa no volume máximo
 
 // o valor de cada input
 const value1 = ref(0)
 const value2 = ref(0)
 const value3 = ref(0)
 
+const calcularVolumeAlvo = () => {
+  const dist1 = Math.min(Math.abs(value1.value - target1Min), Math.abs(value1.value - target1Max))
+  const dist2 = Math.min(Math.abs(value2.value - target2Min), Math.abs(value2.value - target2Max))
+  const dist3 = Math.min(Math.abs(value3.value - target3Min), Math.abs(value3.value - target3Max))
+
+  const totalDist = dist1 + dist2 + dist3
+  const maxDist = 20 // ajuste conforme seu range
+
+  let volumeAlvo = 1 - Math.min(totalDist / maxDist, 1)
+  return volumeAlvo
+}
+
+const calcularVolumeSuave = () => {
+  const dist1 = Math.min(Math.abs(value1.value - target1Min), Math.abs(value1.value - target1Max))
+  const dist2 = Math.min(Math.abs(value2.value - target2Min), Math.abs(value2.value - target2Max))
+  const dist3 = Math.min(Math.abs(value3.value - target3Min), Math.abs(value3.value - target3Max))
+
+  const totalDist = dist1 + dist2 + dist3
+
+  // Suavização com curva exponencial
+  const volume = Math.min(1, Math.pow(totalDist / 20, 1.5))
+  return Math.max(0, 1 - volume)
+}
+
+// Função para animar o volume gradualmente
+function animarVolume() {
+  if (!audioPlayer.value) return;  // Se ainda não carregou, não faz nada
+
+  if (Math.abs(volumeAtual - volumeAlvo) > 0.01) {
+    volumeAtual += (volumeAlvo - volumeAtual) * 0.1;
+    audioPlayer.value.volume = volumeAtual;
+    requestAnimationFrame(animarVolume);
+  } else {
+    audioPlayer.value.volume = volumeAlvo;
+  }
+}
+
+watch([value1, value2, value3], () => {
+  animarVolume()
+})
+
+// Função para verificar se todos os potenciômetros estão na posição correta
+function estaoTodosNaPosicaoCorreta() {
+  return pot1Correto && pot2Correto && pot3Correto; // Variáveis booleanas que você deve definir conforme cada potenciômetro
+}
+
+function atualizarVolumeAlvo() {
+  if (todosPotenciometrosNaPosicaoCorreta()) {
+    volumeAlvo = 0;
+  } else {
+    volumeAlvo = 1;
+  }
+}
+
+// Função que você chama sempre que um potenciômetro muda
+function onPotenciometroChange() {
+  // Atualiza o estado de cada potenciômetro (pot1Correto, pot2Correto, pot3Correto)
+  // depois:
+  atualizarVolumeAlvo();
+  animarVolume();
+}
+
+const mensagens = [
+  "Interrompemos nossa programação para uma notícia urgente.",
+  "O corpo de uma hóspede foi encontrado hoje no Hotel Aurora, centro da cidade.",
+  "Autoridades confirmaram que este é o quarto caso em menos de duas semanas.",
+  "A polícia acredita que o responsável pode estar se passando por um funcionário do hotel.",
+  "Se você está hospedado na região, evite sair do quarto e tranque a porta."
+]
+
 //booleano para se os 3 valores estao corretos
 const resolvido = ref(false)
+
+const dialogoAtivo = ref(false)
+const indiceMensagem = ref(0)
+const textoAtual = ref('')
+let intervalId = null
 
 // Valida qual input esta sendo usado
 const input1 = ref(false)
@@ -299,11 +383,13 @@ const handleMouseUp = () => {
 onMounted(() => {
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', handleMouseUp)
-       audio = new Audio(audioFile);
-    audio.loop = true;
-    audio.play().catch(error => {
-        console.warn("A reprodução automática do áudio foi bloqueada pelo navegador:", error);
-    });
+
+  audio = new Audio(audioFile);
+  audio.loop = true;
+  audio.volume = 0.1;
+  audio.play().catch(error => {
+      console.warn("A reprodução automática do áudio foi bloqueada pelo navegador:", error);
+  });
 })
 // desativa as interaçoes do usuário quando ele já está fora do componente
 onUnmounted(() => {
@@ -316,13 +402,109 @@ onUnmounted(() => {
         audio = null;
     }
 })
+watchEffect(() => {
+  if (audio) {
+    const targetVolume = calcularVolumeSuave()
+
+    // Se quiser ver no console:
+    // console.log("Volume alvo:", targetVolume.toFixed(2))
+
+    // Transição suave do volume atual para o volume desejado
+    const step = 0.02
+    const interval = setInterval(() => {
+      if (!audio) {
+        clearInterval(interval)
+        return
+      }
+
+      if (Math.abs(audio.volume - targetVolume) < step) {
+        audio.volume = targetVolume
+        clearInterval(interval)
+        return
+      }
+
+      audio.volume += audio.volume < targetVolume ? step : -step
+      audio.volume = Math.max(0, Math.min(1, audio.volume))
+    }, 50) // 20 vezes por segundo (50ms)
+
+  }
+})
+const calcularProximidadeTotal = () => {
+  const dist1 = Math.min(Math.abs(value1.value - target1Min), Math.abs(value1.value - target1Max))
+  const dist2 = Math.min(Math.abs(value2.value - target2Min), Math.abs(value2.value - target2Max))
+  const dist3 = Math.min(Math.abs(value3.value - target3Min), Math.abs(value3.value - target3Max))
+
+  // Soma das distâncias individuais
+  const totalDist = dist1 + dist2 + dist3
+
+  // Define um volume baseado em uma escala de distância máxima possível (ex: 30)
+  const volume = Math.max(0, Math.min(1, totalDist / 30)) // quanto menor a distância, menor o volume
+
+  return 1 - volume // inverso: quanto mais perto, menor o volume do chiado
+}
+watchEffect(() => {
+  if (audio) {
+    const volume = calcularProximidadeTotal()
+    audio.volume = volume
+  }
+})
+
+defineProps({
+  mensagemFinal: {
+    type: String,
+    default: 'Você percebe que agora consegue entender o que está sendo dito na televisão'
+  }
+})
+
+// Função para escrever o texto letra por letra
+const digitarMensagem = (mensagem) => {
+  textoAtual.value = ''
+  let i = 0
+  clearInterval(intervalId)
+
+  intervalId = setInterval(() => {
+    if (i < mensagem.length) {
+      textoAtual.value += mensagem[i]
+      i++
+    } else {
+      clearInterval(intervalId)
+    }
+  }, 30) // velocidade da digitação
+}
+
+// Iniciar diálogo após resolver
+watch(resolvido, (novoValor) => {
+  if (novoValor) {
+    dialogoAtivo.value = true
+    indiceMensagem.value = 0
+    digitarMensagem(mensagens[0])
+  }
+})
+
+// Avançar para a próxima mensagem ao clicar
+const proximaMensagem = () => {
+  if (intervalId) {
+    clearInterval(intervalId) // para digitação se usuário clicar no meio
+    textoAtual.value = mensagens[indiceMensagem.value]
+    intervalId = null
+    return
+  }
+
+  if (indiceMensagem.value < mensagens.length - 1) {
+    indiceMensagem.value++
+    digitarMensagem(mensagens[indiceMensagem.value])
+  } else {
+    dialogoAtivo.value = false
+  }
+}
+
 </script>
 
 <style scoped>
 .horror-container {
 
   position: absolute;
-  top: -85%; 
+  top: -850%; 
   left: 50%; 
   transform: translate(-50%, -50%); 
   z-index: 10; 
@@ -659,5 +841,39 @@ onUnmounted(() => {
       0 0 25px rgba(106, 122, 111, 0.8),
       inset 0 0 8px rgba(255, 255, 255, 0.2);
   }
+}
+
+@keyframes fadeInDialogo {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.dialogo-final {
+  position: fixed;
+  bottom: -250px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #a8ffb0;
+  padding: 14px 22px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: 'Courier New', monospace;
+  box-shadow: 0 0 10px rgba(168, 255, 176, 0.3);
+  z-index: 999;
+  max-width: 80vw;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.3s ease;
+}
+
+.dialogo-final:hover {
+  background: rgba(0, 0, 0, 0.95);
 }
 </style>
