@@ -322,7 +322,7 @@ onUnmounted(() => {
 .horror-container {
 
   position: absolute;
-  top: -850%; 
+  top: -85%; 
   left: 50%; 
   transform: translate(-50%, -50%); 
   z-index: 10; 
