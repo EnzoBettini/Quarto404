@@ -1,8 +1,8 @@
 <template>
-  <div 
+  <div  
     ref="shake" 
     :class="{ 'shake-effect': shaking }"
-  >
+  ><!--shake-effect só é aplicado se for true-->
     <slot></slot>
   </div>
 </template>
@@ -11,16 +11,16 @@
 export default {
   name: 'EfeitoShake',
   props: {
-    intensidade: {
+    intensidade: { // O quanto vai sacudir
       type: Number,
       default: 5,
       validator: (value) => value >= 1 && value <= 10
     },
-    duracao: {
+    duracao: { // Por quanto tempo vai sacudir
       type: Number,
       default: 500
     },
-    ativacao: {
+    ativacao: { // Controla quando será ativado
       type: Boolean,
       default: false
     }

@@ -9,20 +9,26 @@ import { defineProps } from 'vue';
 import { useRouter } from 'vue-router';
 
 const props = defineProps({
+   //Rota representa o caminho
   rota: {
     type: String,
     required: true
   },
+  //Opcional
   params: {
     type: Object,
     default: () => ({})
   }
 });
 
+//Dá acesso a várias funções e propriedades relacionadas à navegação
 const router = useRouter();
 
+
 const navegarPara = () => {
+  // Imprime no console para onde está navegando
   console.log("Navegando para: ", props.rota);
+  //Navega
   router.push({
     path: props.rota,
     params: props.params
