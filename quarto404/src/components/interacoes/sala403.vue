@@ -29,7 +29,8 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import videoFile from '@/assets/videos/video_403.mp4';
-import CablePuzzle from './CablePuzzle.vue';
+import CablePuzzle from '@/components/interacoes/CablePuzzle.vue';
+
 
 
 
@@ -66,7 +67,7 @@ function fecharVideo() {
   left: 75%;
   width: 200px;
   height: 250px; 
-
+  pointer-events: auto;
 }
 
 .item-container {

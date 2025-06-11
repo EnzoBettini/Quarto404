@@ -72,15 +72,22 @@
       </div>
 
       <!-- Botão voltar -->
-      <button class="botao-voltar" @click="voltarSala">
-        ← VOLTAR
-      </button>
+   <button class="fechar-btn" @click="voltarParaQuarto">Fechar</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
+const voltarParaQuarto = () => {
+  router.push({ 
+    name: 'Sala',
+    params: { idQuarto: '403' }
+  })
+}
 
 // Estados reativos
 const terminalSelecionado = ref(null)
@@ -164,7 +171,7 @@ const tentarConexao = (terminal1Id, terminal2Id) => {
     // Remove cabo incorreto após 1 segundo
     setTimeout(() => {
       cabosConectados.value = cabosConectados.value.filter(cabo => cabo.id !== novoCabo.id)
-    }, 1000)
+    }, 3000)
   }
 }
 
@@ -183,17 +190,14 @@ const verificarCompletude = () => {
     
     // Fecha automaticamente após 3 segundos
     setTimeout(() => {
-      voltarSala()
+      voltarParaQuarto()
     }, 3000)
   }
 }
 
-// Função para voltar à sala
-const voltarSala = () => {
-  router.push('/quarto/403')
- $emit('fechar-puzzle')
- 
-}
+
+
+
 
 // Efeitos sonoros simulados no console (opcional)
 const emitirSom = (tipo) => {
@@ -206,6 +210,31 @@ onMounted(() => {
 </script>
 
 <style scoped>
+
+.fechar-btn:active {
+  transform: translateY(1px);
+}
+
+.fechar-btn {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  padding: 8px 16px;
+  background: rgba(20, 20, 20, 0.8);
+  color: white;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.fechar-btn:hover {
+  background: rgba(40, 40, 40, 0.9);
+  transform: translateY(-1px);
+}
+
 .puzzle-container {
   position: fixed;
   top: 0;
