@@ -8,6 +8,8 @@ import CreditosView from '@/components/CreditosView.vue'; // Componente creditos
 import GeladeiraView from '@/components/interacoes/geladeira402.vue'; // Componente da geladeira
 import Pinpad402 from '@/components/interacoes/puzzle402.vue';
 import CreditosDown from '@/components/CreditosDown.vue';
+import Text from '@/components/Text.vue';
+import Ending from '@/components/Ending.vue';
 
 const routes = [
     {
@@ -45,6 +47,16 @@ const routes = [
         path: '/creditosdown',
         name: 'creditosdown',
         component: CreditosDown,
+    },
+    {
+        path: '/text',
+        name: 'text',
+        component: Text,
+    },
+    {
+        path: '/ending',
+        name: 'ending',
+        component: Ending,
     },
     {
         path: '/quarto/403/puzzle',

@@ -1,11 +1,35 @@
 <script setup>
 import { useRouter } from 'vue-router';
+import { onMounted, onUnmounted } from 'vue'; // NOVO: Importa os hooks de ciclo de vida
 import { membros } from '@/assets/data/membros.js';
 import startSoundFile from '@/assets/audio/audiosamples/Samples/simpleboom.wav';
+import creepyMusicFile from '@/assets/audio/musicas/MusicaCreepy.mp3'; // NOVO: Importa o ficheiro de música
 
 const router = useRouter();
 
-// Função para tocar o som e voltar ao menu principal
+// NOVO: Variável para guardar a instância da música e ser acessível em todo o script
+let backgroundMusic = null;
+
+// NOVO: onMounted é executado assim que o componente é carregado no ecrã
+onMounted(() => {
+    try {
+        backgroundMusic = new Audio(creepyMusicFile);
+        backgroundMusic.loop = true; // Faz a música repetir quando acabar
+        backgroundMusic.play();
+    } catch (error) {
+        console.error("Erro ao tocar a música de fundo:", error);
+    }
+});
+
+// NOVO: onUnmounted é executado quando o componente é destruído (ex: ao navegar para outra página)
+onUnmounted(() => {
+    if (backgroundMusic) {
+        backgroundMusic.pause(); // Pausa a música
+        backgroundMusic = null; // Limpa a variável
+    }
+});
+
+
 const returnToMenu = () => {
     try {
         const audio = new Audio(startSoundFile);
@@ -13,6 +37,12 @@ const returnToMenu = () => {
     } catch (error) {
         console.error("Erro ao tocar som:", error);
     }
+
+    // NOVO: Garante que a música de fundo pare ao clicar em retornar
+    if (backgroundMusic) {
+        backgroundMusic.pause();
+    }
+
     router.push('/');
 };
 </script>
@@ -40,10 +70,10 @@ const returnToMenu = () => {
 </template>
 
 <style scoped>
-/* Importação das fontes (mantido do original) */
+/* Importação das fontes */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&display=swap');
 
-/* --- ESTILOS GERAIS (maioria mantida do original) --- */
+/* --- ESTILOS GERAIS --- */
 .container {
     width: 100vw;
     height: 100vh;
@@ -54,7 +84,20 @@ const returnToMenu = () => {
     justify-content: center;
     font-family: 'Orbitron', monospace;
     overflow: hidden;
-    /* Garante que nada saia da tela */
+
+    /* NOVO: Propriedades para o efeito de fade-in */
+    opacity: 0;
+    /* Começa invisível */
+    animation: fadeIn 1.5s forwards;
+    /* Aplica a animação com duração de 1.5s */
+}
+
+/* NOVO: Animação de Fade-in */
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        /* Termina totalmente visível */
+    }
 }
 
 .background {
@@ -81,9 +124,9 @@ const returnToMenu = () => {
     display: flex;
     flex-direction: column;
     height: 80vh;
-    /* Altura do conteúdo principal */
 }
 
+/* ... O resto do seu CSS continua aqui sem alterações ... */
 .title {
     font-size: 3rem;
     margin: 0 0 10px 0;
@@ -99,38 +142,19 @@ const returnToMenu = () => {
     opacity: 0.8;
 }
 
-/* --- NOVA SEÇÃO DE CRÉDITOS COM ROLAGEM --- */
-
-/**
- * Viewport dos Créditos (A "Janela")
- * - flex-grow: 1 -> Faz este elemento ocupar todo o espaço vertical disponível no .content.
- * - overflow: hidden -> Essencial! Esconde qualquer parte da lista que saia dos limites deste contentor.
- */
 .credits-viewport {
     flex-grow: 1;
     overflow: hidden;
     position: relative;
     mask-image: linear-gradient(transparent, black 20%, black 80%, transparent);
-    /* Efeito de fade nas bordas */
     -webkit-mask-image: linear-gradient(transparent, black 20%, black 80%, transparent);
 }
 
-/**
- * A Lista de Créditos que se move
- * - position: relative -> Permite o uso da animação 'transform'.
- * - animation -> Aplica a nossa animação de rolagem.
- */
 .credits-list {
     position: relative;
     animation: scroll-credits 30s linear infinite;
-    /* Duração da animação pode ser ajustada */
 }
 
-/**
- * Animação de Rolagem
- * - from -> Começa com a lista completamente abaixo da viewport.
- * - to -> Termina com a lista completamente acima da viewport.
- */
 @keyframes scroll-credits {
     from {
         transform: translateY(100%);
@@ -141,9 +165,6 @@ const returnToMenu = () => {
     }
 }
 
-/**
- * Estilo para cada item na lista de créditos
- */
 .credit-item {
     padding: 20px 0;
 }
@@ -163,8 +184,6 @@ const returnToMenu = () => {
     text-transform: uppercase;
 }
 
-
-/* --- BOTÃO DE RETORNO (mantido do original) --- */
 .return {
     background: transparent;
     color: #00ff88;
@@ -178,9 +197,7 @@ const returnToMenu = () => {
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-top: 30px;
-    /* Adicionado para dar espaço */
     align-self: center;
-    /* Centraliza o botão */
 }
 
 .return:hover {
@@ -199,7 +216,6 @@ const returnToMenu = () => {
     }
 }
 
-/* --- AJUSTES PARA TELAS MENORES --- */
 @media (max-width: 768px) {
     .title {
         font-size: 2rem;

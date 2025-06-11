@@ -18,16 +18,16 @@
       <div class="porta porta-401" @click="irParaQuarto('401')">
         <div class="numero">401</div>
       </div>
-      
+
       <div class="porta porta-402" @click="irParaQuarto('402')">
         <div class="numero">402</div>
       </div>
-      
+
       <div class="porta porta-403" @click="irParaQuarto('403')">
         <div class="numero">403</div>
       </div>
-      
-      <div class="porta porta-404" @click="irParaQuarto('404_2')">
+
+      <div class="porta porta-404" @click="irParaTexto()">
         <div class="numero">404</div>
       </div>
 
@@ -56,6 +56,10 @@ const handleVideoReady = () => {
 
 const irParaQuarto = (idDoQuarto) => {
   router.push({ name: 'Sala', params: { idQuarto: idDoQuarto } });
+};
+
+const irParaTexto = () => {
+  router.push({ name: 'ending' });
 };
 
 const voltarAoMenu = () => {
@@ -112,11 +116,11 @@ onMounted(() => {
 .porta {
   position: absolute;
   cursor: pointer;
-  border: 2px solid transparent; 
+  border: 2px solid transparent;
 }
 
 .numero {
-  display: none; 
+  display: none;
 }
 
 .porta-401 {
@@ -167,17 +171,17 @@ onMounted(() => {
     left: 10%;
     width: 18%;
   }
-  
+
   .porta-402 {
     left: 35%;
     width: 18%;
   }
-  
+
   .porta-403 {
     left: 60%;
     width: 18%;
   }
-  
+
   .porta-404 {
     left: 85%;
     width: 18%;
