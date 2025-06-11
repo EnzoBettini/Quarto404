@@ -1,49 +1,22 @@
 <template>
   <div class="sala402-wrapper">
-    <div v-if="!puzzleVisivel" class="item-container" @click="abrirPuzzle"></div>
-
-    <Transition name="fade" mode="out-in">
-      <component
-        :is="currentStage === '402' ? Puzzle402 : Puzzle402a"
-        v-if="puzzleVisivel"
-        :key="currentStage"
-        @exit="handleExit"
-        @success="switchTo402a"
-      />
-    </Transition>
+    <!-- Área clicável da geladeira -->
+    <div class="item-container" @click="abrirGeladeira"></div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-import Puzzle402 from './puzzle402.vue';
-import Puzzle402a from './puzzle402a.vue';
+import { onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
 import audioFile from '@/assets/audio/audiosamples/Samples/Ambiente402.mp3';
 
-const currentStage = ref('402');
-const puzzleVisivel = ref(false);
-
+const router = useRouter();
 let audio = null;
 
-const abrirPuzzle = () => {
-  puzzleVisivel.value = true;
-};
-
-const fecharPuzzle = () => {
-  puzzleVisivel.value = false;
-};
-
-const handleExit = () => {
-  if (currentStage.value === '402') {
-    currentStage.value = '402a';
-  } else {
-    fecharPuzzle();
-  }
-};
-
-const switchTo402a = () => {
-  currentStage.value = '402a';
-};
+// Navega para a página da geladeira
+function abrirGeladeira() {
+  router.push('/quarto/402/geladeira');
+}
 
 onMounted(() => {
   audio = new Audio(audioFile);
@@ -63,9 +36,14 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.sala402-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
 
 .item-container {
-  position:absolute;
+  position: absolute;
   top: -159%;
   left: 120%;
   width: 290px;
@@ -74,5 +52,4 @@ onUnmounted(() => {
   pointer-events: auto;
   z-index: 10;
 }
-
 </style>

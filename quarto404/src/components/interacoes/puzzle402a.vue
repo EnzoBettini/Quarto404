@@ -1,14 +1,22 @@
 <template>
   <div class="fullscreen-image">
     <img :src="sceneImage" alt="Cena 402B" />
-    <button class="exit-btn" @click="emit('exit')">Fechar Cena</button>
+    <button class="exit-btn" @click="fecharCena">Fechar Cena</button>
   </div>
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router';
 import sceneImage from '@/assets/images/402b.png';
-const emit = defineEmits(['exit']);
+
+const router = useRouter();
+
+function fecharCena() {
+  // Volta diretamente para o quarto 402
+  router.push('/quarto/402');
+}
 </script>
+
 
 <style scoped>
 .fullscreen-image {

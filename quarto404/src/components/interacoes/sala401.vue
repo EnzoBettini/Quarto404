@@ -56,7 +56,7 @@ onUnmounted(() => {
 .item-container {
   position: absolute;
   top: -780%;
-  left: -1%; 
+  left: 16%; 
 
   transform: translate(-50%, -50%);
   width: 13vw;
@@ -67,6 +67,10 @@ onUnmounted(() => {
   border: 3px solid transparent;
   border-radius: 8px;
   transition: border-color 0.2s ease-in-out;
+}
+
+.item-container:hover {
+  border-color: #a7a7a777;
 }
 
 
