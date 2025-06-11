@@ -155,7 +155,7 @@ onMounted(() => {
 
 function aoTerminarVideo() {
   if (props.idQuarto === '404_2') {
-    router.push({ name: 'Menu' });
+    router.push({ name: 'creditosdown' });
   }
 }
 </script>
