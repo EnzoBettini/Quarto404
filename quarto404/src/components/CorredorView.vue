@@ -14,16 +14,24 @@
       Seu navegador não suporta o elemento de vídeo.
     </video>
 
-    <div class="corridor-overlay-content" :class="{ 'visible': videoIsReadyAndVisible }">
-      <h2>Corredor Misterioso</h2>
-      <p>Escolha um quarto:</p>
-      <div class="room-links">
-        <button @click="irParaQuarto('401')" class="room-button">Quarto 401</button>
-        <button @click="irParaQuarto('402')" class="room-button">Quarto 402</button>
-        <button @click="irParaQuarto('403')" class="room-button">Quarto 403</button>
-        <button @click="irParaQuarto('404_2')" class="room-button">Quarto 404</button>
+    <div class="areas-interativas" :class="{ 'visible': videoIsReadyAndVisible }">
+      <div class="porta porta-401" @click="irParaQuarto('401')">
+        <div class="numero">401</div>
       </div>
-      <button @click="voltarAoMenu" class="back-to-menu-button">Voltar ao Menu Principal</button>
+      
+      <div class="porta porta-402" @click="irParaQuarto('402')">
+        <div class="numero">402</div>
+      </div>
+      
+      <div class="porta porta-403" @click="irParaQuarto('403')">
+        <div class="numero">403</div>
+      </div>
+      
+      <div class="porta porta-404" @click="irParaQuarto('404_2')">
+        <div class="numero">404</div>
+      </div>
+
+      <Voltar rota="/" class="voltar-posicao"/>
     </div>
   </div>
 </template>
@@ -32,6 +40,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import corridorVideoFile from '@/assets/videos/corridor_animated.mp4';
+import Voltar from '@/components/Voltar.vue';
 
 const router = useRouter();
 const corridorVideoPlayer = ref(null);
@@ -45,12 +54,10 @@ const handleVideoReady = () => {
   }, 100);
 };
 
-// Função para navegar para um quarto específico
 const irParaQuarto = (idDoQuarto) => {
   router.push({ name: 'Sala', params: { idQuarto: idDoQuarto } });
 };
 
-// Função para voltar ao menu principal
 const voltarAoMenu = () => {
   router.push({ name: 'Menu' });
 };
@@ -61,7 +68,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Estilos do corredor com ajustes de posicionamento */
 .corridor-container {
   width: 100vw;
   height: 100vh;
@@ -79,86 +85,102 @@ onMounted(() => {
   object-fit: cover;
   transform: translate(-50%, -50%);
   z-index: 1;
-  opacity: 0; /* Para o efeito de fade-in inicial */
+  opacity: 0;
   transition: opacity 1.5s ease-in-out;
-
-  /* ADICIONE OU MODIFIQUE ESTA LINHA PARA O BRILHO: */
-  filter: brightness(200%); /* Exemplo: 30% mais brilho. Ajuste o valor como desejar (ex: 1.3, 150%, etc.) */
+  filter: brightness(150%);
 }
 
 .corridor-video.visible {
   opacity: 1;
 }
 
-.corridor-overlay-content {
-  position: relative; /* Mantido relative pois height: 100% o faz preencher o pai */
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end; /* ALTERADO: Alinha conteúdo para baixo */
+.areas-interativas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 100%;
-  text-align: center;
-  color: white;
-  padding: 20px; /* Padding geral */
-  padding-bottom: 10vh; /* ADICIONADO: Espaço na parte inferior (10% da altura da tela) */
-  box-sizing: border-box; /* ADICIONADO: Para padding não aumentar altura total */
-  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 2;
   opacity: 0;
   transition: opacity 1.5s ease-in-out 0.5s;
 }
 
-.corridor-overlay-content.visible {
+.areas-interativas.visible {
   opacity: 1;
 }
 
-.corridor-overlay-content h2 {
-  font-size: 2.5em;
-  margin-bottom: 20px;
-  text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
-}
-
-.corridor-overlay-content p {
-  font-size: 1.2em;
-  margin-bottom: 30px;
-}
-
-.room-links {
-  display: flex;
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.room-button {
-  padding: 12px 25px;
-  font-size: 1.1em;
-  color: #ccc;
-  background-color: rgba(50, 0, 0, 0.7);
-  border: 1px solid #ff4444;
-  border-radius: 5px;
+.porta {
+  position: absolute;
   cursor: pointer;
-  transition: background-color 0.3s, color 0.3s, transform 0.2s;
+  border: 2px solid transparent; 
 }
 
-.room-button:hover {
-  background-color: #ff4444;
-  color: white;
-  transform: scale(1.05);
+.numero {
+  display: none; 
 }
 
-.back-to-menu-button {
-  padding: 10px 20px;
-  font-size: 0.9em;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid white;
-  color: white;
-  text-decoration: none;
-  border-radius: 5px;
-  transition: background-color 0.3s, color 0.3s;
+.porta-401 {
+  left: 11%;
+  top: 29%;
+  width: 13%;
+  height: 60%;
 }
 
-.back-to-menu-button:hover {
-  background-color: white;
-  color: black;
+.porta-402 {
+  left: 31%;
+  top: 33%;
+  width: 13%;
+  height: 43%;
+}
+
+.porta-403 {
+  left: 56%;
+  top: 34%;
+  width: 13%;
+  height: 43%;
+}
+
+.porta-404 {
+  left: 77%;
+  top: 30%;
+  width: 13%;
+  height: 60%;
+}
+
+.voltar-posicao {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Responsividade para diferentes tamanhos de tela */
+@media (max-width: 768px) {
+  .porta-401, .porta-402, .porta-403, .porta-404 {
+    width: 15%;
+    height: 40%;
+  }
+}
+
+@media (max-width: 480px) {
+  .porta-401 {
+    left: 10%;
+    width: 18%;
+  }
+  
+  .porta-402 {
+    left: 35%;
+    width: 18%;
+  }
+  
+  .porta-403 {
+    left: 60%;
+    width: 18%;
+  }
+  
+  .porta-404 {
+    left: 85%;
+    width: 18%;
+  }
 }
 </style>

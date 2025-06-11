@@ -1,7 +1,6 @@
 <template>
   <div>
     <div v-if="!puzzleVisivel" class="item-container" @click="abrirPuzzle">
-      <Overlay nome="televisao_401" />
     </div>
 
     <puzzle401 v-if="puzzleVisivel" @exit="fecharPuzzle" />
@@ -55,18 +54,13 @@ onUnmounted(() => {
 
 .item-container {
   position: absolute;
-  top: -420%;
-  left: 12%; 
-
-  transform: translate(-50%, -50%);
-  width: 13vw;
-
+  top: -150%;
+  left: -9%;
+  height: 100%;
+  width: 45%;
   cursor: pointer;
   pointer-events: auto;
-
-  border: 3px solid transparent;
   border-radius: 8px;
-  transition: border-color 0.2s ease-in-out;
 }
 
 .item-container:hover {
