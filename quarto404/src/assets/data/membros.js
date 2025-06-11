@@ -19,7 +19,7 @@ export const membros = [
     github: "https://github.com/filipesgoncalves",
     linkedin: "https://www.linkedin.com/in/filipe-gonçalves-12139b304/"
   },
-    {
+  {
     nome: "Gabriel Maia",
     github: "https://github.com/gabrielhcmaia",
     linkedin: "https://www.linkedin.com/in/gabrieldamaia/"
