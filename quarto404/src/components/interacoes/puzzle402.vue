@@ -1,6 +1,5 @@
 <template>
   <div class="pinpad-screen">
-    <!-- Botão de voltar -->
     <button @click="sairPuzzle" class="close-button atmospheric-glow" aria-label="Voltar para a geladeira">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" />
@@ -8,9 +7,7 @@
       <div class="button-aura"></div>
     </button>
 
-    <!-- Layout de duas colunas -->
     <div class="split-layout">
-      <!-- Coluna esquerda: Pinpad -->
       <div class="pinpad-column">
         <div class="pinpad-modal enhanced-modal">
           <div class="modal-glow"></div>
@@ -55,7 +52,6 @@
             <div class="error-pulse"></div>
           </p>
           
-          <!-- Indicadores de status -->
           <div v-if="resolvido && !puzzleJaCompletado" class="success-indicator">
             CÓDIGO CORRETO - PUZZLE RESOLVIDO
           </div>
@@ -65,7 +61,7 @@
         </div>
       </div>
 
-      <!-- Coluna direita: Imagem da geladeira aberta -->
+      <!-- overlay da geladeira-->
       <div class="image-column enhanced-image-col">
         <div class="image-frame">
           <img :src="imagemGeladeira" alt="Geladeira aberta" class="geladeira-img enhanced-img" />
@@ -73,14 +69,14 @@
       </div>
     </div>
     
-    <!-- Efeitos atmosféricos de fundo -->
+    <!-- efeitos atmosféricos de fundo -->
     <div class="atmospheric-bg">
       <div class="fog-layer fog-1"></div>
       <div class="fog-layer fog-2"></div>
       <div class="fog-layer fog-3"></div>
     </div>
 
-    <!-- Modal de conclusão -->
+    <!-- componente que mostra a conclusão do puzzle-->
     <Completo 
       v-if="mostrarCompleto"
       @continuar="irParaCorredor" 
