@@ -79,6 +79,11 @@ function fecharVideo() {
 
 
   }
+  .modal-video{
+    top: -550px !important;
+    left: -90%;
+  }
+
 }
 
 .item-container {
