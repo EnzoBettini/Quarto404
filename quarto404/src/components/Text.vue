@@ -4,16 +4,16 @@ import { useRouter } from 'vue-router'; // 1. Importar o useRouter
 
 // --- CONFIGURAÇÕES ---
 const TYPING_SPEED_MS = 100;
-const PAUSE_BETWEEN_PHRASES_MS = 2000;
+const PAUSE_BETWEEN_PHRASES_MS = 20;
 
 // --- FRASES A SEREM EXIBIDAS ---
 const phrases = [
-    "NÃO TEM ESCAPATÓRIA",
-    "VOCÊ FEZ ISSO",
-    "AGORA VOCE VAI REVIVER",
-    "TODO DIA",
-    "O MESMO PESADELO",
-    "VERME ASSASINO"
+    "NÃO TEM ESCAPATÓRIA     ",
+    "VOCÊ FEZ ISSO     ",
+    "AGORA VOCE VAI REVIVER     ",
+    "TODO DIA     ",
+    "O MESMO PESADELO     ",
+    "VERME ASSASINO                 "
 ];
 
 // --- LÓGICA DO COMPONENTE ---
