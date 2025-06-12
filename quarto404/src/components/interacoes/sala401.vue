@@ -63,6 +63,16 @@ onUnmounted(() => {
   border-radius: 8px;
 }
 
+@media screen and (width: 1366px) and (height: 768px) {
+.item-container {
+    top: -110% !important;
+     left: 8%;
+    height: 80%;
+    width: 35%;
+    
+  }
+}
+
 .item-container:hover {
   border-color: #a7a7a777;
 }

@@ -32,9 +32,6 @@ import videoFile from '@/assets/videos/video_403.mp4';
 import CablePuzzle from '@/components/interacoes/CablePuzzle.vue';
 
 
-
-
-
 const router = useRouter();
 const videoVisivel = ref(false);
 const videoPlayer = ref(null);
@@ -68,6 +65,20 @@ function fecharVideo() {
   width: 200px;
   height: 250px; 
   pointer-events: auto;
+}
+@media screen and (width: 1366px) and (height: 768px) {
+.puzzle-container {
+    top: -110% !important;
+     left: 65%;
+
+  }
+
+.item-container {
+    top: -130% !important;
+    left: -10%;
+
+
+  }
 }
 
 .item-container {

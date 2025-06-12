@@ -125,12 +125,14 @@ onMounted(() => {
   erroCodigo.value = false;
 });
 </script>
-
 <style scoped>
 .pinpad-screen {
   position: fixed;
   inset: 0;
   background: 
+    url('D:\Thiago\GitHub\Quarto404\quarto404\src\assets\images\puzzle402dica1.png') no-repeat 180px 40px / 100px auto,
+    url('D:\Thiago\GitHub\Quarto404\quarto404\src\assets\images\puzzle402dica2.png') no-repeat 300px 40px / 100px auto,
+    url('D:\Thiago\GitHub\Quarto404\quarto404\src\assets\images\puzzle402dica3.png') no-repeat 420px 40px / 100px auto,
     radial-gradient(circle at 20% 30%, rgba(15, 25, 35, 0.8) 0%, transparent 50%),
     radial-gradient(circle at 80% 70%, rgba(25, 15, 35, 0.6) 0%, transparent 50%),
     linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(10, 10, 20, 0.95) 100%);

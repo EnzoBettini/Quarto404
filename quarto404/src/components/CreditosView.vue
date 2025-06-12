@@ -10,6 +10,7 @@ const activeIndex = ref(0);
 const returnToMenu = () => {
   try {
     const audio = new Audio(startSoundFile);
+    audio.volume = 0.1;
     audio.play();
   } catch (error) {
     console.error("Erro ao tocar som:", error);
