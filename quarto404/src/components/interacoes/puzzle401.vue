@@ -148,6 +148,9 @@
       </div>
 
       <div v-if="resolvido" class="success-indicator">LIBERADO</div>
+      <div v-if="puzzleJaCompletado && !dialogoAtivo" class="puzzle-completed-indicator">
+        PUZZLE JÁ COMPLETADO
+      </div>
     </div>
     <!--Cria uma mensagem apos resolver o puzzle-->
   <div v-if="resolvido && dialogoAtivo" class="dialogo-final" @click="proximaMensagem">
@@ -159,6 +162,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import audioFile from '@/assets/audio/audiosamples/Samples/interferencia_01.wav';
+import { salvarProgressoPuzzle, verificarProgressoPuzzle } from '@/assets/utils/puzzleProgress';
 
 //Guarda o chiado
 let audio = null;
@@ -178,6 +182,9 @@ const mensagens = [
 
 //Indica se todos os potenciômetros estão na posição correta
 const resolvido = ref(false)
+
+// Add after other refs
+const puzzleJaCompletado = ref(false)
 
 //Controla o texto final
 const dialogoAtivo = ref(false)
@@ -220,6 +227,8 @@ const isCorrect = computed(() => {
 watch(isCorrect, (newValue) => {
   if (newValue && !resolvido.value) {
     resolvido.value = true
+    // Salvar progresso no localStorage
+    salvarProgressoPuzzle('401')
     setTimeout(() => {
      
     }, 1000)
@@ -229,7 +238,7 @@ watch(isCorrect, (newValue) => {
         audio.src = '';
         audio = null;
     }
-  } else if (!newValue) {
+  } else if (!newValue && !puzzleJaCompletado.value) {
     resolvido.value = false
   }
 })
@@ -322,6 +331,12 @@ onMounted(() => {
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', handleMouseUp)
 
+  // Verificar se o puzzle já foi completado anteriormente
+  puzzleJaCompletado.value = verificarProgressoPuzzle('401')
+  if (puzzleJaCompletado.value) {
+    resolvido.value = true
+  }
+
   audio = new Audio(audioFile);
   audio.loop = true;
   audio.volume = 0.1;
@@ -397,7 +412,8 @@ const proximaMensagem = () => {
 .horror-container {
 
   position: absolute;
-  top: -850%; 
+  /* Aqui podem mudar a vontade o @media já está puxando pro certo do pc da faculdade */
+  top: -5%; 
   left: 50%; 
   transform: translate(-50%, -50%); 
   z-index: 10; 
@@ -407,6 +423,12 @@ const proximaMensagem = () => {
   font-family: 'Courier New', monospace;
   user-select: none;
   pointer-events: auto;
+}
+
+@media screen and (width: 1366px) and (height: 768px) {
+  .horror-container {
+    top: -111% !important;
+  }
 }
 
 .tv-control-panel {
@@ -424,8 +446,7 @@ const proximaMensagem = () => {
   position: absolute;
   top: 10px;
   right: 10px;
-  width: 32px;
-  height: 32px;
+  padding: 5px 10px;
   background: linear-gradient(145deg, #2a3530, #1a2520);
   border: 2px solid #3a4530;
   border-radius: 6px;
@@ -436,6 +457,7 @@ const proximaMensagem = () => {
   transition: all 0.3s ease;
   color: #4a5a4f;
   z-index: 10;
+  font-size: 12px;
   box-shadow: 
     0 0 10px rgba(0, 0, 0, 0.5),
     inset 0 0 5px rgba(74, 90, 79, 0.1);
@@ -749,7 +771,7 @@ const proximaMensagem = () => {
 
 .dialogo-final {
   position: fixed;
-  bottom: -250px;
+  bottom: 110%;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.85);
@@ -766,7 +788,32 @@ const proximaMensagem = () => {
   transition: background 0.3s ease;
 }
 
+@media screen and (width: 1366px) and (height: 768px) {
+  .dialogo-final {
+    bottom: -80% !important;
+  }
+}
+
 .dialogo-final:hover {
   background: rgba(0, 0, 0, 0.95);
+}
+
+.puzzle-completed-indicator {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 10px;
+  background: linear-gradient(145deg, #4a5a4f, #3a4a3f);
+  border: 1px solid #6a7a6f;
+  border-radius: 4px;
+  color: #6a7a6f;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  box-shadow: 
+    0 0 15px rgba(106, 122, 111, 0.6),
+    inset 0 0 5px rgba(255, 255, 255, 0.1);
+  animation: success-glow 1s ease-in-out infinite alternate;
 }
 </style>

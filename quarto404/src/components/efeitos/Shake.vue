@@ -2,7 +2,8 @@
   <div  
     ref="shake" 
     :class="{ 'shake-effect': shaking }"
-  ><!--shake-effect só é aplicado se for true-->
+    :style="cssVars"
+  >
     <slot></slot>
   </div>
 </template>
@@ -11,16 +12,16 @@
 export default {
   name: 'EfeitoShake',
   props: {
-    intensidade: { // O quanto vai sacudir
+    intensidade: {
       type: Number,
       default: 5,
-      validator: (value) => value >= 1 && value <= 10
+      validator: (value) => value >= 1 && value <= 20
     },
-    duracao: { // Por quanto tempo vai sacudir
+    duracao: {
       type: Number,
       default: 500
     },
-    ativacao: { // Controla quando será ativado
+    ativacao: {
       type: Boolean,
       default: false
     }
@@ -28,6 +29,14 @@ export default {
   data() {
     return {
       shaking: false
+    }
+  },
+  computed: {
+    cssVars() {
+      return {
+        '--shake-intensity': `${this.intensidade}px`,
+        '--shake-duration': `${this.duracao}ms`
+      }
     }
   },
   watch: {
@@ -45,6 +54,7 @@ export default {
       
       setTimeout(() => {
         this.shaking = false;
+        this.$emit('shake-complete');
       }, this.duracao);
     }
   }
@@ -53,7 +63,7 @@ export default {
 
 <style scoped>
 .shake-effect {
-  animation: shake-animation var(--shake-duration, 500ms) cubic-bezier(.36,.07,.19,.97) both;
+  animation: shake-animation var(--shake-duration) cubic-bezier(.36,.07,.19,.97) both;
   transform: translate3d(0, 0, 0);
   perspective: 1000px;
 }
@@ -63,15 +73,10 @@ export default {
     transform: translate3d(0, 0, 0);
   }
   10%, 30%, 50%, 70%, 90% {
-    transform: translate3d(calc(var(--shake-intensity, 5px) * -1), 0, 0);
+    transform: translate3d(calc(var(--shake-intensity) * -1), 0, 0);
   }
   20%, 40%, 60%, 80% {
-    transform: translate3d(var(--shake-intensity, 5px), 0, 0);
+    transform: translate3d(var(--shake-intensity), 0, 0);
   }
-}
-
-.shake-effect {
-  --shake-intensity: v-bind('intensidade + "px"');
-  --shake-duration: v-bind('duracao + "ms"');
 }
 </style>
