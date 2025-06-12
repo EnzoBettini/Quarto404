@@ -2,7 +2,7 @@
   <div class="horror-container"><!--Painel-->
     <div class="tv-control-panel"><!--Onde ficam os potenciômetros -->
       <div class="panel-texture"></div>
-      
+
       <!-- Botão de sair -->
       <button class="exit-button" @click="handleExit" title="Sair">
         Sair
@@ -15,39 +15,21 @@
             <div class="housing-ring"></div>
             <div class="dial-markings">
               <!--Rotação do potenciometro-->
-              <div 
-                v-for="i in 11" 
-                :key="i"
-                class="dial-mark" 
-                :style="{ transform: `rotate(${225 - (i-1) * 22.5}deg)` }"
-              >
+              <div v-for="i in 11" :key="i" class="dial-mark"
+                :style="{ transform: `rotate(${225 - (i - 1) * 22.5}deg)` }">
                 <div class="mark-line"></div>
-                <div 
-                  class="mark-text" 
-                  :style="{ transform: `rotate(${-(225 - (i-1) * 22.5)}deg)` }"
-                >
-                  {{ i-1 }}
+                <div class="mark-text" :style="{ transform: `rotate(${-(225 - (i - 1) * 22.5)}deg)` }">
+                  {{ i - 1 }}
                 </div>
               </div>
             </div>
             <!--Os potenciometros irão travar após todos estarem corretamente posicionados-->
-            <div
-              ref="knob1Ref"
-              :class="['potentiometer', definirVisualPorProximidade(value1, target1Min, target1Max)]"
+            <div ref="knob1Ref" :class="['potentiometer', definirVisualPorProximidade(value1, target1Min, target1Max)]"
               @mousedown="event => { if (!resolvido) handleMouseDown1(event) }"
-              :style="{ cursor: input1 ? 'grabbing' : (resolvido ? 'not-allowed' : 'grab') }"
-              >              
-              <div 
-                class="knob-face" 
-                :style="{ transform: `rotate(${valueToRotation(value1)}deg)` }"
-              >
+              :style="{ cursor: input1 ? 'grabbing' : (resolvido ? 'not-allowed' : 'grab') }">
+              <div class="knob-face" :style="{ transform: `rotate(${valueToRotation(value1)}deg)` }">
                 <div class="knob-grooves">
-                  <div 
-                    v-for="i in 12" 
-                    :key="i"
-                    class="groove" 
-                    :style="{ transform: `rotate(${(i-1) * 30}deg)` }" 
-                  />
+                  <div v-for="i in 12" :key="i" class="groove" :style="{ transform: `rotate(${(i - 1) * 30}deg)` }" />
                 </div>
                 <div class="knob-indicator"></div>
                 <div class="knob-center"></div>
@@ -61,38 +43,20 @@
           <div class="potentiometer-housing">
             <div class="housing-ring"></div>
             <div class="dial-markings">
-              <div 
-                v-for="i in 11" 
-                :key="i"
-                class="dial-mark" 
-                :style="{ transform: `rotate(${225 - (i-1) * 22.5}deg)` }"
-              >
+              <div v-for="i in 11" :key="i" class="dial-mark"
+                :style="{ transform: `rotate(${225 - (i - 1) * 22.5}deg)` }">
                 <div class="mark-line"></div>
-                <div 
-                  class="mark-text" 
-                  :style="{ transform: `rotate(${-(225 - (i-1) * 22.5)}deg)` }"
-                >
-                  {{ i-1 }}
+                <div class="mark-text" :style="{ transform: `rotate(${-(225 - (i - 1) * 22.5)}deg)` }">
+                  {{ i - 1 }}
                 </div>
               </div>
             </div>
-             <div
-              ref="knob2Ref"
-              :class="['potentiometer', definirVisualPorProximidade(value2, target2Min, target2Max)]"
+            <div ref="knob2Ref" :class="['potentiometer', definirVisualPorProximidade(value2, target2Min, target2Max)]"
               @mousedown="event => { if (!resolvido) handleMouseDown2(event) }"
-              :style="{ cursor: input1 ? 'grabbing' : (resolvido ? 'not-allowed' : 'grab') }"
-              >    
-              <div 
-                class="knob-face" 
-                :style="{ transform: `rotate(${valueToRotation(value2)}deg)` }"
-              >
+              :style="{ cursor: input1 ? 'grabbing' : (resolvido ? 'not-allowed' : 'grab') }">
+              <div class="knob-face" :style="{ transform: `rotate(${valueToRotation(value2)}deg)` }">
                 <div class="knob-grooves">
-                  <div 
-                    v-for="i in 12" 
-                    :key="i"
-                    class="groove" 
-                    :style="{ transform: `rotate(${(i-1) * 30}deg)` }" 
-                  />
+                  <div v-for="i in 12" :key="i" class="groove" :style="{ transform: `rotate(${(i - 1) * 30}deg)` }" />
                 </div>
                 <div class="knob-indicator"></div>
                 <div class="knob-center"></div>
@@ -106,38 +70,20 @@
           <div class="potentiometer-housing">
             <div class="housing-ring"></div>
             <div class="dial-markings">
-              <div 
-                v-for="i in 11" 
-                :key="i"
-                class="dial-mark" 
-                :style="{ transform: `rotate(${225 - (i-1) * 22.5}deg)` }"
-              >
+              <div v-for="i in 11" :key="i" class="dial-mark"
+                :style="{ transform: `rotate(${225 - (i - 1) * 22.5}deg)` }">
                 <div class="mark-line"></div>
-                <div 
-                  class="mark-text" 
-                  :style="{ transform: `rotate(${-(225 - (i-1) * 22.5)}deg)` }"
-                >
-                  {{ i-1 }}
+                <div class="mark-text" :style="{ transform: `rotate(${-(225 - (i - 1) * 22.5)}deg)` }">
+                  {{ i - 1 }}
                 </div>
               </div>
             </div>
-             <div
-              ref="knob3Ref"
-              :class="['potentiometer', definirVisualPorProximidade(value3, target3Min, target3Max)]"
+            <div ref="knob3Ref" :class="['potentiometer', definirVisualPorProximidade(value3, target3Min, target3Max)]"
               @mousedown="event => { if (!resolvido) handleMouseDown3(event) }"
-              :style="{ cursor: input1 ? 'grabbing' : (resolvido ? 'not-allowed' : 'grab') }"
-              >    
-              <div 
-                class="knob-face" 
-                :style="{ transform: `rotate(${valueToRotation(value3)}deg)` }"
-              >
+              :style="{ cursor: input1 ? 'grabbing' : (resolvido ? 'not-allowed' : 'grab') }">
+              <div class="knob-face" :style="{ transform: `rotate(${valueToRotation(value3)}deg)` }">
                 <div class="knob-grooves">
-                  <div 
-                    v-for="i in 12" 
-                    :key="i"
-                    class="groove" 
-                    :style="{ transform: `rotate(${(i-1) * 30}deg)` }" 
-                  />
+                  <div v-for="i in 12" :key="i" class="groove" :style="{ transform: `rotate(${(i - 1) * 30}deg)` }" />
                 </div>
                 <div class="knob-indicator"></div>
                 <div class="knob-center"></div>
@@ -153,9 +99,9 @@
       </div>
     </div>
     <!--Cria uma mensagem apos resolver o puzzle-->
-  <div v-if="resolvido && dialogoAtivo" class="dialogo-final" @click="proximaMensagem">
-  {{ textoAtual }}
-</div>
+    <div v-if="resolvido && dialogoAtivo" class="dialogo-final" @click="proximaMensagem">
+      {{ textoAtual }}
+    </div>
   </div>
 </template>
 
@@ -219,7 +165,7 @@ const isCorrect = computed(() => {
   const isKnob1Correct = value1.value >= target1Min && value1.value <= target1Max
   const isKnob2Correct = value2.value >= target2Min && value2.value <= target2Max
   const isKnob3Correct = value3.value >= target3Min && value3.value <= target3Max
-  
+
   return isKnob1Correct && isKnob2Correct && isKnob3Correct
 })
 
@@ -230,13 +176,13 @@ watch(isCorrect, (newValue) => {
     // Salvar progresso no localStorage
     salvarProgressoPuzzle('401')
     setTimeout(() => {
-     
+
     }, 1000)
-     console.log("Componente Sala402 desmontado: Parando áudio.");
+    console.log("Componente Sala402 desmontado: Parando áudio.");
     if (audio) {
-        audio.pause();
-        audio.src = '';
-        audio = null;
+      audio.pause();
+      audio.src = '';
+      audio = null;
     }
   } else if (!newValue && !puzzleJaCompletado.value) {
     resolvido.value = false
@@ -335,25 +281,27 @@ onMounted(() => {
   puzzleJaCompletado.value = verificarProgressoPuzzle('401')
   if (puzzleJaCompletado.value) {
     resolvido.value = true
+  } else {
+    audio = new Audio(audioFile);
+    audio.loop = true;
+    audio.volume = 0.1;
+    audio.play().catch(error => {
+      console.warn("A reprodução automática do áudio foi bloqueada pelo navegador:", error);
+    });
   }
 
-  audio = new Audio(audioFile);
-  audio.loop = true;
-  audio.volume = 0.1;
-  audio.play().catch(error => {
-      console.warn("A reprodução automática do áudio foi bloqueada pelo navegador:", error);
-  });
+
 })
 // desativa as interaçoes do usuário quando ele já está fora do componente
 onUnmounted(() => {
   document.removeEventListener('mousemove', handleMouseMove)
   document.removeEventListener('mouseup', handleMouseUp)
-   console.log("Componente Sala402 desmontado: Parando áudio.");
-    if (audio) {
-        audio.pause();
-        audio.src = '';
-        audio = null;
-    }
+  console.log("Componente Sala402 desmontado: Parando áudio.");
+  if (audio) {
+    audio.pause();
+    audio.src = '';
+    audio = null;
+  }
 })
 
 
@@ -413,10 +361,10 @@ const proximaMensagem = () => {
 
   position: absolute;
   /* Aqui podem mudar a vontade o @media já está puxando pro certo do pc da faculdade */
-  top: -5%; 
-  left: 50%; 
-  transform: translate(-50%, -50%); 
-  z-index: 10; 
+  top: -5%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -458,7 +406,7 @@ const proximaMensagem = () => {
   color: #4a5a4f;
   z-index: 10;
   font-size: 12px;
-  box-shadow: 
+  box-shadow:
     0 0 10px rgba(0, 0, 0, 0.5),
     inset 0 0 5px rgba(74, 90, 79, 0.1);
 }
@@ -466,7 +414,7 @@ const proximaMensagem = () => {
 .exit-button:hover {
   background: linear-gradient(145deg, #3a4530, #2a3530);
   border-color: #4a5a4f;
-  box-shadow: 
+  box-shadow:
     0 0 15px rgba(0, 0, 0, 0.7),
     inset 0 0 8px rgba(74, 90, 79, 0.2);
   transform: scale(1.05);
@@ -493,21 +441,17 @@ const proximaMensagem = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    repeating-linear-gradient(
-      0deg,
+  background:
+    repeating-linear-gradient(0deg,
       transparent,
       transparent 1px,
       rgba(42, 53, 48, 0.03) 1px,
-      rgba(42, 53, 48, 0.03) 2px
-    ),
-    repeating-linear-gradient(
-      90deg,
+      rgba(42, 53, 48, 0.03) 2px),
+    repeating-linear-gradient(90deg,
       transparent,
       transparent 1px,
       rgba(0, 0, 0, 0.05) 1px,
-      rgba(0, 0, 0, 0.05) 2px
-    );
+      rgba(0, 0, 0, 0.05) 2px);
   pointer-events: none;
   z-index: 1;
   animation: static-flicker 3s ease-in-out infinite;
@@ -547,7 +491,7 @@ const proximaMensagem = () => {
   background: radial-gradient(circle at 30% 30%, #2a3530, #1a2520, #0f1612);
   border: 3px solid #2a3530;
   border-radius: 50%;
-  box-shadow: 
+  box-shadow:
     inset 0 0 20px rgba(0, 0, 0, 0.8),
     0 0 15px rgba(42, 53, 48, 0.3);
   display: flex;
@@ -622,7 +566,7 @@ const proximaMensagem = () => {
   transition: transform 0.1s ease;
   background: radial-gradient(circle at 30% 30%, #3a4a3f, #2a3530, #1a2520);
   border: 2px solid #2a3530;
-  box-shadow: 
+  box-shadow:
     0 0 10px rgba(0, 0, 0, 0.8),
     inset 0 0 15px rgba(0, 0, 0, 0.6),
     inset 0 0 5px rgba(74, 90, 79, 0.1);
@@ -657,7 +601,7 @@ const proximaMensagem = () => {
   background: linear-gradient(to bottom, #4a5a4f, #2a3530);
   border-radius: 2px;
   transform: translateX(-50%);
-  box-shadow: 
+  box-shadow:
     0 0 5px rgba(74, 90, 79, 0.5),
     inset 0 0 2px rgba(255, 255, 255, 0.1);
 }
@@ -672,7 +616,7 @@ const proximaMensagem = () => {
   border: 1px solid #2a3530;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  box-shadow: 
+  box-shadow:
     inset 0 0 8px rgba(0, 0, 0, 0.8),
     0 0 3px rgba(42, 53, 48, 0.3);
 }
@@ -680,14 +624,14 @@ const proximaMensagem = () => {
 /* Efeito visual mais perceptível mas ainda sutil */
 .potentiometer.close .knob-indicator {
   background: linear-gradient(to bottom, #5a6a5f, #3a4a3f);
-  box-shadow: 
+  box-shadow:
     0 0 7px rgba(90, 106, 95, 0.6),
     inset 0 0 2px rgba(255, 255, 255, 0.15);
 }
 
 .potentiometer.correct .knob-indicator {
   background: linear-gradient(to bottom, #6a7a6f, #4a5a4f);
-  box-shadow: 
+  box-shadow:
     0 0 10px rgba(106, 122, 111, 0.7),
     0 0 15px rgba(106, 122, 111, 0.4),
     inset 0 0 3px rgba(255, 255, 255, 0.2);
@@ -695,7 +639,7 @@ const proximaMensagem = () => {
 }
 
 .potentiometer.correct .knob-face {
-  box-shadow: 
+  box-shadow:
     0 0 12px rgba(0, 0, 0, 0.8),
     inset 0 0 15px rgba(0, 0, 0, 0.6),
     inset 0 0 8px rgba(106, 122, 111, 0.2),
@@ -719,26 +663,36 @@ const proximaMensagem = () => {
   font-size: 10px;
   font-weight: bold;
   letter-spacing: 1px;
-  box-shadow: 
+  box-shadow:
     0 0 15px rgba(106, 122, 111, 0.6),
     inset 0 0 5px rgba(255, 255, 255, 0.1);
   animation: success-glow 1s ease-in-out infinite alternate;
 }
 
 @keyframes static-flicker {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.4; }
+
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
 }
 
 @keyframes correct-pulse {
-  0%, 100% {
-    box-shadow: 
+
+  0%,
+  100% {
+    box-shadow:
       0 0 10px rgba(106, 122, 111, 0.7),
       0 0 15px rgba(106, 122, 111, 0.4),
       inset 0 0 3px rgba(255, 255, 255, 0.2);
   }
+
   50% {
-    box-shadow: 
+    box-shadow:
       0 0 15px rgba(106, 122, 111, 0.8),
       0 0 25px rgba(106, 122, 111, 0.5),
       inset 0 0 4px rgba(255, 255, 255, 0.25);
@@ -747,12 +701,13 @@ const proximaMensagem = () => {
 
 @keyframes success-glow {
   from {
-    box-shadow: 
+    box-shadow:
       0 0 15px rgba(106, 122, 111, 0.6),
       inset 0 0 5px rgba(255, 255, 255, 0.1);
   }
+
   to {
-    box-shadow: 
+    box-shadow:
       0 0 25px rgba(106, 122, 111, 0.8),
       inset 0 0 8px rgba(255, 255, 255, 0.2);
   }
@@ -763,6 +718,7 @@ const proximaMensagem = () => {
     opacity: 0;
     transform: translateX(-50%) translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
@@ -811,7 +767,7 @@ const proximaMensagem = () => {
   font-size: 10px;
   font-weight: bold;
   letter-spacing: 1px;
-  box-shadow: 
+  box-shadow:
     0 0 15px rgba(106, 122, 111, 0.6),
     inset 0 0 5px rgba(255, 255, 255, 0.1);
   animation: success-glow 1s ease-in-out infinite alternate;

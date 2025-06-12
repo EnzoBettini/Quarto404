@@ -1,39 +1,22 @@
 <template>
-  <Shake 
-    :ativacao="shakeAtivado" 
-    :intensidade="8" 
-    :duracao="600"
-    @shake-complete="shakeAtivado = false"
-  >
+  <Shake :ativacao="shakeAtivado" :intensidade="8" :duracao="600" @shake-complete="shakeAtivado = false">
     <div class="corridor-container">
-      <video
-        ref="corridorVideoPlayer"
-        class="corridor-video"
-        :class="{ 'visible': videoIsReadyAndVisible }"
-        :src="corridorVideoSource"
-        autoplay
-        muted
-        playsinline
-      >
+      <video ref="corridorVideoPlayer" class="corridor-video" :class="{ 'visible': videoIsReadyAndVisible }"
+        :src="corridorVideoSource" autoplay muted playsinline>
         Seu navegador não suporta o elemento de vídeo.
       </video>
 
       <div class="areas-interativas" :class="{ 'visible': videoIsReadyAndVisible }">
-        <div 
-          v-for="quarto in statusQuartos" 
-          :key="quarto.numero"
-          :class="['porta', `porta-${quarto.numero}`, { 
-            'porta-bloqueada': quarto.bloqueado,
-            'porta-completada': quarto.completado 
-          }]" 
-          @click="tentarEntrarQuarto(quarto)"
-        >
+        <div v-for="quarto in statusQuartos" :key="quarto.numero" :class="['porta', `porta-${quarto.numero}`, {
+          'porta-bloqueada': quarto.bloqueado,
+          'porta-completada': quarto.completado
+        }]" @click="tentarEntrarQuarto(quarto)">
           <div class="numero">{{ quarto.numero }}</div>
           <div v-if="quarto.bloqueado" class="icone-bloqueado">🔒</div>
           <div v-if="quarto.completado" class="icone-completado">✓</div>
         </div>
 
-        <Voltar rota="/" class="voltar-posicao"/>
+        <Voltar rota="/" class="voltar-posicao" />
       </div>
 
       <!-- Modal de Bloqueio -->
@@ -58,7 +41,7 @@
           </div>
         </div>
       </div>
-      
+
     </div>
   </Shake>
 </template>
@@ -69,7 +52,8 @@ import { useRouter } from 'vue-router';
 import corridorVideoFile from '@/assets/videos/corridor_animated.mp4';
 import Voltar from '@/components/Voltar.vue';
 import Shake from '@/components/efeitos/Shake.vue';
-import { verificarLiberacaoQuarto, obterStatusCompleto, verificarProgressoPuzzle, debugProgresso } from '@/assets/utils/puzzleProgress';
+import { obterStatusCompleto, debugProgresso } from '@/assets/utils/puzzleProgress';
+import startSoundFile from '@/assets/audio/audiosamples/Samples/simpleboom.wav';
 
 const router = useRouter();
 const corridorVideoPlayer = ref(null);
@@ -78,6 +62,17 @@ const videoIsReadyAndVisible = ref(false);
 const shakeAtivado = ref(false);
 const atualizacaoForcada = ref(0); // Para forçar reavaliação do computed
 
+const portaFechada = () => {
+  try {
+    const audio = new Audio(startSoundFile);
+    audio.volume = 0.3;
+    audio.play().catch(error => {
+      console.error("Erro ao tentar tocar o som de início:", error);
+    });
+  } catch (error) {
+    console.error("Erro ao criar o objeto de áudio:", error);
+  }
+}
 // Estado do modal de bloqueio
 const modalBloqueio = ref({
   ativo: false,
@@ -90,7 +85,7 @@ const modalBloqueio = ref({
 const statusQuartos = computed(() => {
   // Forçar reavaliação quando atualizacaoForcada mudar
   console.log('Atualizando status dos quartos', atualizacaoForcada.value);
-  
+
   const status = obterStatusCompleto();
   // Garantir que o quarto 401 nunca esteja bloqueado
   const quarto401 = status.find(q => q.numero === '401');
@@ -98,7 +93,7 @@ const statusQuartos = computed(() => {
     quarto401.liberado = true;
     quarto401.bloqueado = false;
   }
-  
+
   // Log para debug
   console.log('Status dos quartos atualizado:', status);
   return status;
@@ -117,6 +112,7 @@ const tentarEntrarQuarto = (quarto) => {
     if (quarto.liberado) {
       irParaTexto();
     } else {
+      portaFechada();
       mostrarModalBloqueio(quarto);
     }
     return;
@@ -125,6 +121,7 @@ const tentarEntrarQuarto = (quarto) => {
   if (quarto.liberado) {
     irParaQuarto(quarto.numero);
   } else {
+    portaFechada();
     mostrarModalBloqueio(quarto);
   }
 };
@@ -132,7 +129,7 @@ const tentarEntrarQuarto = (quarto) => {
 const mostrarModalBloqueio = (quarto) => {
   // Ativar shake effect
   shakeAtivado.value = true;
-  
+
   // Adicionar efeito de shake na porta específica
   const portaElement = document.querySelector(`.porta-${quarto.numero}`);
   if (portaElement) {
@@ -141,10 +138,10 @@ const mostrarModalBloqueio = (quarto) => {
       portaElement.style.animation = '';
     }, 500);
   }
-  
+
   // Encontrar qual quarto precisa ser completado
   const quartoAnterior = encontrarQuartoRequisito(quarto.numero);
-  
+
   modalBloqueio.value = {
     ativo: true,
     mensagem: `Você precisa completar os quartos anteriores antes de acessar o Quarto ${quarto.numero}.`,
@@ -156,7 +153,7 @@ const mostrarModalBloqueio = (quarto) => {
 const encontrarQuartoRequisito = (numeroQuarto) => {
   const quartos = ["401", "402", "403", "404"];
   const indiceAtual = quartos.indexOf(numeroQuarto);
-  
+
   // Encontra o primeiro quarto não completado antes do atual
   for (let i = 0; i < indiceAtual; i++) {
     const status = statusQuartos.value.find(q => q.numero === quartos[i]);
@@ -164,7 +161,7 @@ const encontrarQuartoRequisito = (numeroQuarto) => {
       return quartos[i];
     }
   }
-  
+
   return quartos[0]; // Fallback para o primeiro quarto
 };
 
@@ -199,7 +196,7 @@ const forcarAtualizacao = () => {
 onMounted(() => {
   console.log("Componente CorredorView montado.");
   forcarAtualizacao();
-  
+
   // Adicionar evento para atualizar quando a janela recebe foco
   window.addEventListener('focus', forcarAtualizacao);
 });
@@ -373,7 +370,7 @@ watch(corridorVideoPlayer, (newPlayer) => {
   padding: 35px;
   max-width: 550px;
   width: 90%;
-  box-shadow: 
+  box-shadow:
     0 0 50px rgba(255, 68, 68, 0.4),
     0 0 100px rgba(255, 68, 68, 0.2),
     inset 0 0 30px rgba(0, 0, 0, 0.8);
@@ -414,7 +411,7 @@ watch(corridorVideoPlayer, (newPlayer) => {
   font-size: 26px;
   font-weight: bold;
   margin: 0;
-  text-shadow: 
+  text-shadow:
     0 0 10px rgba(255, 68, 68, 0.8),
     0 0 20px rgba(255, 68, 68, 0.4);
   animation: glow-text 2s ease-in-out infinite alternate;
@@ -514,8 +511,13 @@ watch(corridorVideoPlayer, (newPlayer) => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideIn {
@@ -523,6 +525,7 @@ watch(corridorVideoPlayer, (newPlayer) => {
     opacity: 0;
     transform: scale(0.8) translateY(-50px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -531,16 +534,20 @@ watch(corridorVideoPlayer, (newPlayer) => {
 
 /* Responsividade para diferentes tamanhos de tela */
 @media (max-width: 768px) {
-  .porta-401, .porta-402, .porta-403, .porta-404 {
+
+  .porta-401,
+  .porta-402,
+  .porta-403,
+  .porta-404 {
     width: 15%;
     height: 40%;
   }
-  
+
   .modal-bloqueio {
     padding: 20px;
     margin: 20px;
   }
-  
+
   .modal-actions {
     flex-direction: column;
   }
@@ -569,23 +576,57 @@ watch(corridorVideoPlayer, (newPlayer) => {
 }
 
 @keyframes shimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
+  0% {
+    left: -100%;
+  }
+
+  100% {
+    left: 100%;
+  }
 }
 
 @keyframes pulse-line {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 @keyframes shake-door {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
-  20%, 40%, 60%, 80% { transform: translateX(2px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-2px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(2px);
+  }
 }
 
 @keyframes glow-text {
-  from { text-shadow: 0 0 10px rgba(255, 68, 68, 0.8), 0 0 20px rgba(255, 68, 68, 0.4); }
-  to { text-shadow: 0 0 15px rgba(255, 68, 68, 1), 0 0 30px rgba(255, 68, 68, 0.6); }
+  from {
+    text-shadow: 0 0 10px rgba(255, 68, 68, 0.8), 0 0 20px rgba(255, 68, 68, 0.4);
+  }
+
+  to {
+    text-shadow: 0 0 15px rgba(255, 68, 68, 1), 0 0 30px rgba(255, 68, 68, 0.6);
+  }
 }
 </style>
