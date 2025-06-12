@@ -13,7 +13,7 @@ const phrases = [
     "AGORA VOCE VAI REVIVER     ",
     "TODO DIA     ",
     "O MESMO PESADELO     ",
-    "VERME ASSASINO                 "
+    "VERME ASSASSINO                 "
 ];
 
 // --- LÓGICA DO COMPONENTE ---
