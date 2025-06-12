@@ -3,7 +3,7 @@
     <div class="painel-principal">
       <div class="puzzle-header">
         <div class="puzzle-title">SISTEMA DE RECONEXÃO</div>
-        <div class="status-display" :class="{ 'status-online': puzzleCompleto }">
+        <div class="status-display" :class="statusDisplayClass">
           {{ statusSistema }}
         </div>
       </div>
@@ -90,12 +90,17 @@
       </div>
 
       <!-- Mensagem de sucesso -->
-      <div v-if="puzzleCompleto" class="mensagem-sucesso">
+      <div v-if="puzzleCompleto && !puzzleJaCompletado" class="mensagem-sucesso">
         <div class="texto-sucesso">CABOS LIGADOS</div>
         <div class="sistema-online">QUARTO 404 ABERTO</div>
         <div class="success-icon">
           <div class="checkmark"></div>
         </div>
+      </div>
+
+      <!-- Puzzle Já Completado -->
+      <div v-if="puzzleJaCompletado" class="puzzle-completed">
+        <div class="puzzle-completed-text">PUZZLE JÁ COMPLETADO</div>
       </div>
 
       <!-- Botão voltar -->
@@ -113,9 +118,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router'
-const router = useRouter()
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { salvarProgressoPuzzle, verificarProgressoPuzzle } from '@/assets/utils/puzzleProgress';
+
+const router = useRouter();
 
 const voltarParaQuarto = () => {
   router.push({ 
@@ -125,25 +132,26 @@ const voltarParaQuarto = () => {
 }
 
 // Estados reativos
-const terminalSelecionado = ref(null)
-const cabosConectados = ref([])
-const puzzleCompleto = ref(false)
-const statusSistema = ref('SISTEMA OFFLINE - RECONECTE OS CABOS')
+const terminalSelecionado = ref(null);
+const cabosConectados = ref([]);
+const puzzleCompleto = ref(false);
+const puzzleJaCompletado = ref(false);
+const statusSistema = ref('SISTEMA OFFLINE - RECONECTE OS CABOS');
 
 // Configuração dos terminais
 const terminaisEsquerda = ref([
   { id: 'E1', label: 'PWR-A', conectado: false, pareamento: 'D2', posicao: { x: 0, y: 80 } },
   { id: 'E2', label: 'DATA', conectado: false, pareamento: 'D1', posicao: { x: 0, y: 160 } },
   { id: 'E3', label: 'GND', conectado: false, pareamento: 'D4', posicao: { x: 0, y: 240 } },
-  { id: 'E4', label: 'PWR-B', conectado: false, pareamento: 'E4', posicao: { x: 0, y: 320 } }
-])
+  { id: 'E4', label: 'PWR-B', conectado: false, pareamento: 'D3', posicao: { x: 0, y: 320 } }
+]);
 
 const terminaisDireita = ref([
   { id: 'D1', label: 'IN-02', conectado: false, pareamento: 'E2', posicao: { x: 300, y: 80 } },
   { id: 'D2', label: 'IN-01', conectado: false, pareamento: 'E1', posicao: { x: 300, y: 160 } },
   { id: 'D3', label: 'IN-04', conectado: false, pareamento: 'E4', posicao: { x: 300, y: 240 } },
   { id: 'D4', label: 'IN-03', conectado: false, pareamento: 'E3', posicao: { x: 300, y: 320 } }
-])
+]);
 
 // Função para selecionar terminal
 const selecionarTerminal = (terminalId) => {
@@ -210,7 +218,7 @@ const tentarConexao = (terminal1Id, terminal2Id) => {
     verificarCompletude()
   } else {
     emitirSom('error')
-    // Remove cabo incorreto após 1 segundo
+    // Remove cabo incorreto após 3 segundos
     setTimeout(() => {
       cabosConectados.value = cabosConectados.value.filter(cabo => cabo.id !== novoCabo.id)
     }, 3000)
@@ -231,6 +239,9 @@ const verificarCompletude = () => {
     statusSistema.value = 'SISTEMA ONLINE - ENERGIA RESTAURADA'
     emitirSom('success')
     
+    // Salvar progresso no localStorage
+    salvarProgressoPuzzle('403')
+    
     // Fecha automaticamente após 3 segundos
     setTimeout(() => {
       voltarParaQuarto()
@@ -243,9 +254,58 @@ const emitirSom = (tipo) => {
   console.log(`🔊 Som: ${tipo}`)
 }
 
+// Watcher para verificar quando o puzzle é resolvido
+watch(puzzleCompleto, (novoValor) => {
+  if (novoValor && !puzzleJaCompletado.value) {
+    console.log("Puzzle 403 resolvido!");
+  }
+});
+
 onMounted(() => {
-  console.log('Puzzle de cabos carregado')
+  // Verificar se o puzzle já foi completado anteriormente
+  puzzleJaCompletado.value = verificarProgressoPuzzle('403')
+  
+  if (puzzleJaCompletado.value) {
+    puzzleCompleto.value = true
+    statusSistema.value = 'SISTEMA ONLINE - ENERGIA RESTAURADA'
+    
+    // Recriar as conexões corretas visualmente
+    const conexoesCorretas = [
+      { from: 'E1', to: 'D2' },
+      { from: 'E2', to: 'D1' },
+      { from: 'E3', to: 'D4' },
+      { from: 'E4', to: 'D3' }
+    ];
+    
+    conexoesCorretas.forEach(conexao => {
+      const terminal1 = encontrarTerminal(conexao.from);
+      const terminal2 = encontrarTerminal(conexao.to);
+      
+      if (terminal1 && terminal2) {
+        terminal1.conectado = true;
+        terminal2.conectado = true;
+        
+        cabosConectados.value.push({
+          id: `${conexao.from}-${conexao.to}`,
+          x1: terminal1.posicao.x,
+          y1: terminal1.posicao.y,
+          x2: terminal2.posicao.x,
+          y2: terminal2.posicao.y,
+          status: 'correto',
+          cor: '#00ff41',
+          terminal1: conexao.from,
+          terminal2: conexao.to
+        });
+      }
+    });
+  }
+  
+  console.log(`Puzzle 403 - Já completado: ${puzzleJaCompletado.value}`);
 })
+
+const statusDisplayClass = computed(() => {
+  return { 'status-online': puzzleCompleto.value };
+});
 </script>
 
 <style scoped>
@@ -567,6 +627,26 @@ onMounted(() => {
   border-left: 3px solid #00ff41;
   transform: translate(-50%, -60%) rotate(-45deg);
   box-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+}
+
+.puzzle-completed {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid #00ff41;
+  border-radius: 4px;
+  padding: 5px 10px;
+  z-index: 10;
+}
+
+.puzzle-completed-text {
+  color: #00ff41;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
 }
 
 @keyframes sucesso-aparecer {

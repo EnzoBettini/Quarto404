@@ -17,7 +17,11 @@
           <h3 class="title-enhanced">Digite o código:</h3>
           <div class="inputs-container enhanced-inputs">
             <div v-for="(digit, index) in codigoInput" :key="index" class="digit-control enhanced-digit">
-              <button class="arrow-btn enhanced-arrow" @click="incrementDigit(index)">
+              <button 
+                class="arrow-btn enhanced-arrow" 
+                @click="incrementDigit(index)"
+                :disabled="resolvido"
+              >
                 <span class="arrow-symbol">▲</span>
                 <div class="btn-ripple"></div>
               </button>
@@ -25,14 +29,22 @@
                 <span class="digit-number">{{ digit }}</span>
                 <div class="digit-glow"></div>
               </div>
-              <button class="arrow-btn enhanced-arrow" @click="decrementDigit(index)">
+              <button 
+                class="arrow-btn enhanced-arrow" 
+                @click="decrementDigit(index)"
+                :disabled="resolvido"
+              >
                 <span class="arrow-symbol">▼</span>
                 <div class="btn-ripple"></div>
               </button>
             </div>
           </div>
           <div class="actions">
-            <button @click="validarCodigo" class="confirm-btn enhanced-confirm">
+            <button 
+              @click="validarCodigo" 
+              class="confirm-btn enhanced-confirm"
+              :disabled="resolvido"
+            >
               <span class="btn-text">Confirmar</span>
               <div class="confirm-glow"></div>
             </button>
@@ -42,6 +54,14 @@
             Código incorreto. Tente novamente.
             <div class="error-pulse"></div>
           </p>
+          
+          <!-- Indicadores de status -->
+          <div v-if="resolvido && !puzzleJaCompletado" class="success-indicator">
+            CÓDIGO CORRETO - PUZZLE RESOLVIDO
+          </div>
+          <div v-if="puzzleJaCompletado" class="puzzle-completed-indicator">
+            PUZZLE JÁ COMPLETADO
+          </div>
         </div>
       </div>
 
@@ -72,35 +92,49 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import successSound from '@/assets/audio/audiosamples/Samples/puzzlesuccess.mp3';
 import imagemGeladeira from '@/assets/images/402a.png';
-import Completo from '../Completo.vue'
+import Completo from '../Completo.vue';
+import { salvarProgressoPuzzle, verificarProgressoPuzzle } from '@/assets/utils/puzzleProgress';
 
 const router = useRouter();
 const codigoInput = ref([0, 0, 0]);
 const erroCodigo = ref(false);
 const codigoCorreto = '154';
-const mostrarCompleto = ref(false)
+const mostrarCompleto = ref(false);
+const resolvido = ref(false);
+const puzzleJaCompletado = ref(false);
 
 const audioSucesso = new Audio(successSound);
 
 function incrementDigit(index) {
+  if (resolvido.value) return;
   codigoInput.value[index] = (codigoInput.value[index] + 1) % 10;
   erroCodigo.value = false; // Limpa mensagem de erro ao alterar dígitos
 }
 
 function decrementDigit(index) {
+  if (resolvido.value) return;
   codigoInput.value[index] = (codigoInput.value[index] + 9) % 10;
   erroCodigo.value = false; // Limpa mensagem de erro ao alterar dígitos
 }
 
 function validarCodigo() {
+  if (resolvido.value) return;
+  
   const codigoDigitado = codigoInput.value.join('');
   if (codigoDigitado === codigoCorreto) {
+    resolvido.value = true;
+    // Salvar progresso no localStorage
+    salvarProgressoPuzzle('402');
+    
     audioSucesso.play().catch(err => console.warn('Erro ao tocar áudio:', err));
-    mostrarCompleto.value = true;
+    
+    setTimeout(() => {
+      mostrarCompleto.value = true;
+    }, 1500);
   } else {
     erroCodigo.value = true;
   }
@@ -119,20 +153,39 @@ function fecharCompleto() {
   mostrarCompleto.value = false;
 }
 
-// Resetar o código ao montar o componente
+// Watcher para verificar quando o puzzle é resolvido
+watch(resolvido, (novoValor) => {
+  if (novoValor && !puzzleJaCompletado.value) {
+    console.log("Puzzle 402 resolvido!");
+  }
+});
+
+// Resetar o código ao montar o componente e verificar progresso
 onMounted(() => {
-  codigoInput.value = [0, 0, 0];
+  // Verificar se o puzzle já foi completado anteriormente
+  puzzleJaCompletado.value = verificarProgressoPuzzle('402');
+  
+  if (puzzleJaCompletado.value) {
+    resolvido.value = true;
+    // Se já foi completado, mostrar o código correto
+    codigoInput.value = [1, 5, 4];
+  } else {
+    codigoInput.value = [0, 0, 0];
+  }
+  
   erroCodigo.value = false;
+  console.log(`Puzzle 402 - Já completado: ${puzzleJaCompletado.value}`);
 });
 </script>
+
 <style scoped>
 .pinpad-screen {
   position: fixed;
   inset: 0;
   background: 
-    url('D:\Thiago\GitHub\Quarto404\quarto404\src\assets\images\puzzle402dica1.png') no-repeat 180px 40px / 100px auto,
-    url('D:\Thiago\GitHub\Quarto404\quarto404\src\assets\images\puzzle402dica2.png') no-repeat 300px 40px / 100px auto,
-    url('D:\Thiago\GitHub\Quarto404\quarto404\src\assets\images\puzzle402dica3.png') no-repeat 420px 40px / 100px auto,
+    url('@/assets/images/puzzle402dica1.png') no-repeat 180px 40px / 100px auto,
+    url('@/assets/images/puzzle402dica2.png') no-repeat 300px 40px / 100px auto,
+    url('@/assets/images/puzzle402dica3.png') no-repeat 420px 40px / 100px auto,
     radial-gradient(circle at 20% 30%, rgba(15, 25, 35, 0.8) 0%, transparent 50%),
     radial-gradient(circle at 80% 70%, rgba(25, 15, 35, 0.6) 0%, transparent 50%),
     linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(10, 10, 20, 0.95) 100%);
@@ -424,6 +477,12 @@ onMounted(() => {
   overflow: hidden;
 }
 
+.enhanced-arrow:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
 .arrow-symbol {
   position: relative;
   z-index: 2;
@@ -438,7 +497,7 @@ onMounted(() => {
   transition: opacity 0.3s ease;
 }
 
-.enhanced-arrow:hover {
+.enhanced-arrow:hover:not(:disabled) {
   background: 
     linear-gradient(135deg, 
       rgba(20, 40, 20, 0.9) 0%, 
@@ -451,11 +510,11 @@ onMounted(() => {
     inset 0 0 15px rgba(0, 0, 0, 0.4);
 }
 
-.enhanced-arrow:hover .btn-ripple {
+.enhanced-arrow:hover:not(:disabled) .btn-ripple {
   opacity: 1;
 }
 
-.enhanced-arrow:active {
+.enhanced-arrow:active:not(:disabled) {
   transform: scale(0.98) translateY(0);
 }
 
@@ -483,6 +542,12 @@ onMounted(() => {
   overflow: hidden;
 }
 
+.enhanced-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
 .btn-text {
   position: relative;
   z-index: 2;
@@ -502,7 +567,7 @@ onMounted(() => {
   transition: opacity 0.6s ease;
 }
 
-.enhanced-confirm:hover {
+.enhanced-confirm:hover:not(:disabled) {
   background: 
     linear-gradient(135deg, 
       rgba(20, 40, 20, 1) 0%, 
@@ -515,11 +580,11 @@ onMounted(() => {
   color: rgba(220, 255, 220, 1);
 }
 
-.enhanced-confirm:hover .confirm-glow {
+.enhanced-confirm:hover:not(:disabled) .confirm-glow {
   opacity: 1;
 }
 
-.enhanced-confirm:active {
+.enhanced-confirm:active:not(:disabled) {
   transform: translateY(-1px) scale(1);
 }
 
@@ -559,6 +624,40 @@ onMounted(() => {
     transparent 100%
   );
   animation: errorPulse 2s ease-in-out infinite;
+}
+
+.success-indicator {
+  margin-top: 20px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(30, 60, 30, 0.8), rgba(20, 40, 20, 0.9));
+  border: 2px solid rgba(60, 120, 60, 0.6);
+  border-radius: 8px;
+  color: rgba(120, 220, 120, 0.95);
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-align: center;
+  box-shadow: 
+    0 0 20px rgba(60, 120, 60, 0.3),
+    inset 0 0 15px rgba(0, 0, 0, 0.4);
+  animation: success-glow 1.5s ease-in-out infinite alternate;
+}
+
+.puzzle-completed-indicator {
+  margin-top: 20px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(30, 60, 30, 0.8), rgba(20, 40, 20, 0.9));
+  border: 2px solid rgba(60, 120, 60, 0.6);
+  border-radius: 8px;
+  color: rgba(120, 220, 120, 0.95);
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-align: center;
+  box-shadow: 
+    0 0 20px rgba(60, 120, 60, 0.3),
+    inset 0 0 15px rgba(0, 0, 0, 0.4);
+  animation: success-glow 1.5s ease-in-out infinite alternate;
 }
 
 .actions {
@@ -617,6 +716,19 @@ onMounted(() => {
 @keyframes errorPulse {
   0%, 100% { transform: translateX(-100%); }
   50% { transform: translateX(100%); }
+}
+
+@keyframes success-glow {
+  from {
+    box-shadow: 
+      0 0 20px rgba(60, 120, 60, 0.3),
+      inset 0 0 15px rgba(0, 0, 0, 0.4);
+  }
+  to {
+    box-shadow: 
+      0 0 30px rgba(60, 120, 60, 0.5),
+      inset 0 0 20px rgba(0, 0, 0, 0.5);
+  }
 }
 
 /* Responsividade para dispositivos móveis */
