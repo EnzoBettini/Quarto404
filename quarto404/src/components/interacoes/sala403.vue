@@ -69,6 +69,13 @@ function fecharVideo() {
   height: 250px; 
   pointer-events: auto;
 }
+@media screen and (width: 1366px) and (height: 768px) {
+.puzzle-container {
+    top: -110% !important;
+     left: 65%;
+
+  }
+}
 
 .item-container {
   position: absolute;

@@ -409,6 +409,12 @@ const proximaMensagem = () => {
   pointer-events: auto;
 }
 
+@media screen and (width: 1366px) and (height: 768px) {
+  .horror-container {
+    top: -111% !important;
+  }
+}
+
 .tv-control-panel {
   position: relative;
   width: 500px;
