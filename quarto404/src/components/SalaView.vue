@@ -34,6 +34,7 @@ import { ref, watch, onMounted, defineProps, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import Sala401 from './interacoes/sala401.vue';
 import Sala402 from './interacoes/sala402.vue';
+import Sala403 from './interacoes/Sala403.vue';
 import Voltar from './Voltar.vue';
 
 // Import the image file properly
@@ -80,11 +81,13 @@ import video401File from '@/assets/videos/401_animated.mp4';
 import video402File from '@/assets/videos/402_animated.mp4';
 import video403File from '@/assets/videos/403_animated.mp4';
 import video404_2File from '@/assets/videos/404_animated.mp4';
-import Sala403 from './interacoes/sala403.vue';
+
+
 
 const mapaDeInteracoes = {
   '401': Sala401,
-  '402': Sala402
+  '402': Sala402,
+  '403': Sala403
 };
 
 const videosDisponiveis = {
