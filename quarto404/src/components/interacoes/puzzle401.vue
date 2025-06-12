@@ -1,19 +1,20 @@
 <template>
-  <div class="horror-container">
-    <div class="tv-control-panel">
+  <div class="horror-container"><!--Painel-->
+    <div class="tv-control-panel"><!--Onde ficam os potenciômetros -->
       <div class="panel-texture"></div>
       
       <!-- Botão de sair -->
       <button class="exit-button" @click="handleExit" title="Sair">
         Sair
       </button>
-      
+
       <div class="control-section">
         <div class="potentiometer-group">
           <div class="pot-label">VOLUME</div>
           <div class="potentiometer-housing">
             <div class="housing-ring"></div>
             <div class="dial-markings">
+              <!--Rotação do potenciometro-->
               <div 
                 v-for="i in 11" 
                 :key="i"
@@ -29,6 +30,7 @@
                 </div>
               </div>
             </div>
+            <!--Os potenciometros irão travar após todos estarem corretamente posicionados-->
             <div
               ref="knob1Ref"
               :class="['potentiometer', definirVisualPorProximidade(value1, target1Min, target1Max)]"
@@ -146,7 +148,11 @@
       </div>
 
       <div v-if="resolvido" class="success-indicator">LIBERADO</div>
+      <div v-if="puzzleJaCompletado && !dialogoAtivo" class="puzzle-completed-indicator">
+        PUZZLE JÁ COMPLETADO
+      </div>
     </div>
+    <!--Cria uma mensagem apos resolver o puzzle-->
   <div v-if="resolvido && dialogoAtivo" class="dialogo-final" @click="proximaMensagem">
   {{ textoAtual }}
 </div>
@@ -156,81 +162,15 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import audioFile from '@/assets/audio/audiosamples/Samples/interferencia_01.wav';
-import { watchEffect } from 'vue'
+import { salvarProgressoPuzzle, verificarProgressoPuzzle } from '@/assets/utils/puzzleProgress';
 
+//Guarda o chiado
 let audio = null;
-const audioPlayer = ref(null);
-let volumeAtual = 1;
-let volumeAlvo = 1;
-
-const currentVolume = ref(1) // começa no volume máximo
 
 // o valor de cada input
 const value1 = ref(0)
 const value2 = ref(0)
 const value3 = ref(0)
-
-const calcularVolumeAlvo = () => {
-  const dist1 = Math.min(Math.abs(value1.value - target1Min), Math.abs(value1.value - target1Max))
-  const dist2 = Math.min(Math.abs(value2.value - target2Min), Math.abs(value2.value - target2Max))
-  const dist3 = Math.min(Math.abs(value3.value - target3Min), Math.abs(value3.value - target3Max))
-
-  const totalDist = dist1 + dist2 + dist3
-  const maxDist = 20 // ajuste conforme seu range
-
-  let volumeAlvo = 1 - Math.min(totalDist / maxDist, 1)
-  return volumeAlvo
-}
-
-const calcularVolumeSuave = () => {
-  const dist1 = Math.min(Math.abs(value1.value - target1Min), Math.abs(value1.value - target1Max))
-  const dist2 = Math.min(Math.abs(value2.value - target2Min), Math.abs(value2.value - target2Max))
-  const dist3 = Math.min(Math.abs(value3.value - target3Min), Math.abs(value3.value - target3Max))
-
-  const totalDist = dist1 + dist2 + dist3
-
-  // Suavização com curva exponencial
-  const volume = Math.min(1, Math.pow(totalDist / 20, 1.5))
-  return Math.max(0, 1 - volume)
-}
-
-// Função para animar o volume gradualmente
-function animarVolume() {
-  if (!audioPlayer.value) return;  // Se ainda não carregou, não faz nada
-
-  if (Math.abs(volumeAtual - volumeAlvo) > 0.01) {
-    volumeAtual += (volumeAlvo - volumeAtual) * 0.1;
-    audioPlayer.value.volume = volumeAtual;
-    requestAnimationFrame(animarVolume);
-  } else {
-    audioPlayer.value.volume = volumeAlvo;
-  }
-}
-
-watch([value1, value2, value3], () => {
-  animarVolume()
-})
-
-// Função para verificar se todos os potenciômetros estão na posição correta
-function estaoTodosNaPosicaoCorreta() {
-  return pot1Correto && pot2Correto && pot3Correto; // Variáveis booleanas que você deve definir conforme cada potenciômetro
-}
-
-function atualizarVolumeAlvo() {
-  if (todosPotenciometrosNaPosicaoCorreta()) {
-    volumeAlvo = 0;
-  } else {
-    volumeAlvo = 1;
-  }
-}
-
-// Função que você chama sempre que um potenciômetro muda
-function onPotenciometroChange() {
-  // Atualiza o estado de cada potenciômetro (pot1Correto, pot2Correto, pot3Correto)
-  // depois:
-  atualizarVolumeAlvo();
-  animarVolume();
-}
 
 const mensagens = [
   "Interrompemos nossa programação para uma notícia urgente.",
@@ -240,12 +180,17 @@ const mensagens = [
   "Se você está hospedado na região, evite sair do quarto e tranque a porta."
 ]
 
-//booleano para se os 3 valores estao corretos
+//Indica se todos os potenciômetros estão na posição correta
 const resolvido = ref(false)
 
+// Add after other refs
+const puzzleJaCompletado = ref(false)
+
+//Controla o texto final
 const dialogoAtivo = ref(false)
 const indiceMensagem = ref(0)
 const textoAtual = ref('')
+
 let intervalId = null
 
 // Valida qual input esta sendo usado
@@ -253,7 +198,7 @@ const input1 = ref(false)
 const input2 = ref(false)
 const input3 = ref(false)
 
-// Referências inputs rotatorios, fica observando qualquer alteração
+// Referências os potenciometros para caso ocorra alteração
 const knob1Ref = ref(null)
 const knob2Ref = ref(null)
 const knob3Ref = ref(null)
@@ -282,6 +227,8 @@ const isCorrect = computed(() => {
 watch(isCorrect, (newValue) => {
   if (newValue && !resolvido.value) {
     resolvido.value = true
+    // Salvar progresso no localStorage
+    salvarProgressoPuzzle('401')
     setTimeout(() => {
      
     }, 1000)
@@ -291,7 +238,7 @@ watch(isCorrect, (newValue) => {
         audio.src = '';
         audio = null;
     }
-  } else if (!newValue) {
+  } else if (!newValue && !puzzleJaCompletado.value) {
     resolvido.value = false
   }
 })
@@ -384,6 +331,12 @@ onMounted(() => {
   document.addEventListener('mousemove', handleMouseMove)
   document.addEventListener('mouseup', handleMouseUp)
 
+  // Verificar se o puzzle já foi completado anteriormente
+  puzzleJaCompletado.value = verificarProgressoPuzzle('401')
+  if (puzzleJaCompletado.value) {
+    resolvido.value = true
+  }
+
   audio = new Audio(audioFile);
   audio.loop = true;
   audio.volume = 0.1;
@@ -402,52 +355,7 @@ onUnmounted(() => {
         audio = null;
     }
 })
-watchEffect(() => {
-  if (audio) {
-    const targetVolume = calcularVolumeSuave()
 
-    // Se quiser ver no console:
-    // console.log("Volume alvo:", targetVolume.toFixed(2))
-
-    // Transição suave do volume atual para o volume desejado
-    const step = 0.02
-    const interval = setInterval(() => {
-      if (!audio) {
-        clearInterval(interval)
-        return
-      }
-
-      if (Math.abs(audio.volume - targetVolume) < step) {
-        audio.volume = targetVolume
-        clearInterval(interval)
-        return
-      }
-
-      audio.volume += audio.volume < targetVolume ? step : -step
-      audio.volume = Math.max(0, Math.min(1, audio.volume))
-    }, 50) // 20 vezes por segundo (50ms)
-
-  }
-})
-const calcularProximidadeTotal = () => {
-  const dist1 = Math.min(Math.abs(value1.value - target1Min), Math.abs(value1.value - target1Max))
-  const dist2 = Math.min(Math.abs(value2.value - target2Min), Math.abs(value2.value - target2Max))
-  const dist3 = Math.min(Math.abs(value3.value - target3Min), Math.abs(value3.value - target3Max))
-
-  // Soma das distâncias individuais
-  const totalDist = dist1 + dist2 + dist3
-
-  // Define um volume baseado em uma escala de distância máxima possível (ex: 30)
-  const volume = Math.max(0, Math.min(1, totalDist / 30)) // quanto menor a distância, menor o volume
-
-  return 1 - volume // inverso: quanto mais perto, menor o volume do chiado
-}
-watchEffect(() => {
-  if (audio) {
-    const volume = calcularProximidadeTotal()
-    audio.volume = volume
-  }
-})
 
 defineProps({
   mensagemFinal: {
@@ -456,7 +364,7 @@ defineProps({
   }
 })
 
-// Função para escrever o texto letra por letra
+// Função que escreve letra por letra
 const digitarMensagem = (mensagem) => {
   textoAtual.value = ''
   let i = 0
@@ -472,7 +380,7 @@ const digitarMensagem = (mensagem) => {
   }, 30) // velocidade da digitação
 }
 
-// Iniciar diálogo após resolver
+// Iniciar diálogo após resolver o puzzle
 watch(resolvido, (novoValor) => {
   if (novoValor) {
     dialogoAtivo.value = true
@@ -481,10 +389,10 @@ watch(resolvido, (novoValor) => {
   }
 })
 
-// Avançar para a próxima mensagem ao clicar
+// Precisa clicar uma vez pra skipar o texto e uma segunda vez para avançar
 const proximaMensagem = () => {
   if (intervalId) {
-    clearInterval(intervalId) // para digitação se usuário clicar no meio
+    clearInterval(intervalId) // para a digitação se o jogador clicar no meio
     textoAtual.value = mensagens[indiceMensagem.value]
     intervalId = null
     return
@@ -504,7 +412,8 @@ const proximaMensagem = () => {
 .horror-container {
 
   position: absolute;
-  top: -850%; 
+  /* Aqui podem mudar a vontade o @media já está puxando pro certo do pc da faculdade */
+  top: -5%; 
   left: 50%; 
   transform: translate(-50%, -50%); 
   z-index: 10; 
@@ -514,6 +423,12 @@ const proximaMensagem = () => {
   font-family: 'Courier New', monospace;
   user-select: none;
   pointer-events: auto;
+}
+
+@media screen and (width: 1366px) and (height: 768px) {
+  .horror-container {
+    top: -111% !important;
+  }
 }
 
 .tv-control-panel {
@@ -531,8 +446,7 @@ const proximaMensagem = () => {
   position: absolute;
   top: 10px;
   right: 10px;
-  width: 32px;
-  height: 32px;
+  padding: 5px 10px;
   background: linear-gradient(145deg, #2a3530, #1a2520);
   border: 2px solid #3a4530;
   border-radius: 6px;
@@ -543,6 +457,7 @@ const proximaMensagem = () => {
   transition: all 0.3s ease;
   color: #4a5a4f;
   z-index: 10;
+  font-size: 12px;
   box-shadow: 
     0 0 10px rgba(0, 0, 0, 0.5),
     inset 0 0 5px rgba(74, 90, 79, 0.1);
@@ -856,7 +771,7 @@ const proximaMensagem = () => {
 
 .dialogo-final {
   position: fixed;
-  bottom: -250px;
+  bottom: 110%;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.85);
@@ -873,7 +788,32 @@ const proximaMensagem = () => {
   transition: background 0.3s ease;
 }
 
+@media screen and (width: 1366px) and (height: 768px) {
+  .dialogo-final {
+    bottom: -80% !important;
+  }
+}
+
 .dialogo-final:hover {
   background: rgba(0, 0, 0, 0.95);
+}
+
+.puzzle-completed-indicator {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 10px;
+  background: linear-gradient(145deg, #4a5a4f, #3a4a3f);
+  border: 1px solid #6a7a6f;
+  border-radius: 4px;
+  color: #6a7a6f;
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  box-shadow: 
+    0 0 15px rgba(106, 122, 111, 0.6),
+    inset 0 0 5px rgba(255, 255, 255, 0.1);
+  animation: success-glow 1s ease-in-out infinite alternate;
 }
 </style>

@@ -73,6 +73,7 @@ const getParticleStyle = () => {
 const startGame = () => {
   try {
     const audio = new Audio(startSoundFile);
+    audio.volume = 0.3;
     audio.play().catch(error => {
       console.error("Erro ao tentar tocar o som de início:", error);
     });
@@ -101,6 +102,7 @@ const startGame = () => {
 const goToCredits = () => {
   try {
     const audio = new Audio(startSoundFile);
+    audio.volume = 0.1;
     audio.play().catch(error => {
       console.error("Erro ao tentar tocar o som:", error);
     });

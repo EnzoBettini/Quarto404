@@ -58,12 +58,11 @@ const routes = [
         name: 'ending',
         component: Ending,
     },
-    
     {
         path: '/quarto/403/puzzle',
         name: 'CablePuzzle',
         component: () => import('@/components/interacoes/CablePuzzle.vue')
-    },
+    }
 
 ];
 

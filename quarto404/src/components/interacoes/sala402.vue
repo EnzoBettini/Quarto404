@@ -52,4 +52,11 @@ onUnmounted(() => {
   pointer-events: auto;
   z-index: 10;
 }
+@media screen and (width: 1366px) and (height: 768px) {
+.item-container {
+    top: -130% !important;
+     left: 95%;
+
+  }
+}
 </style>

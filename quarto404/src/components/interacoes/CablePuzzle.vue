@@ -1,7 +1,12 @@
 <template>
   <div class="puzzle-container">
     <div class="painel-principal">
-
+      <div class="puzzle-header">
+        <div class="puzzle-title">SISTEMA DE RECONEXÃO</div>
+        <div class="status-display" :class="statusDisplayClass">
+          {{ statusSistema }}
+        </div>
+      </div>
       
       <div class="area-cabos">
         <!-- Terminais do lado esquerdo -->
@@ -15,8 +20,11 @@
             }]"
             @click="selecionarTerminal(terminal.id)"
           >
-            <div class="terminal-interno"></div>
-            <span class="terminal-label">{{ terminal.label }}</span>
+            <div class="terminal-conector">
+              <div class="terminal-interno"></div>
+              <div class="terminal-anel"></div>
+            </div>
+            <div class="terminal-label">{{ terminal.label }}</div>
           </div>
         </div>
 
@@ -24,13 +32,25 @@
         <div class="area-conexoes">
           <svg class="svg-cabos" width="300" height="400">
             <defs>
-              <filter id="glow">
+              <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
                 <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                 <feMerge> 
                   <feMergeNode in="coloredBlur"/>
                   <feMergeNode in="SourceGraphic"/>
                 </feMerge>
               </filter>
+              
+              <linearGradient id="caboGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#00ff41" stop-opacity="0.8"/>
+                <stop offset="50%" stop-color="#00ff41" stop-opacity="1"/>
+                <stop offset="100%" stop-color="#00ff41" stop-opacity="0.8"/>
+              </linearGradient>
+              
+              <linearGradient id="caboErroGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ff4444" stop-opacity="0.8"/>
+                <stop offset="50%" stop-color="#ff4444" stop-opacity="1"/>
+                <stop offset="100%" stop-color="#ff4444" stop-opacity="0.8"/>
+              </linearGradient>
             </defs>
             
             <line 
@@ -41,8 +61,9 @@
               :x2="cabo.x2" 
               :y2="cabo.y2"
               :class="['cabo-linha', cabo.status]"
-              :stroke="cabo.cor"
-              stroke-width="4"
+              :stroke="cabo.status === 'correto' ? 'url(#caboGradient)' : 'url(#caboErroGradient)'"
+              stroke-width="6"
+              stroke-linecap="round"
               filter="url(#glow)"
             />
           </svg>
@@ -59,28 +80,49 @@
             }]"
             @click="selecionarTerminal(terminal.id)"
           >
-            <div class="terminal-interno"></div>
-            <span class="terminal-label">{{ terminal.label }}</span>
+            <div class="terminal-conector">
+              <div class="terminal-interno"></div>
+              <div class="terminal-anel"></div>
+            </div>
+            <div class="terminal-label">{{ terminal.label }}</div>
           </div>
         </div>
       </div>
 
       <!-- Mensagem de sucesso -->
-      <div v-if="puzzleCompleto" class="mensagem-sucesso">
+      <div v-if="puzzleCompleto && !puzzleJaCompletado" class="mensagem-sucesso">
         <div class="texto-sucesso">CABOS LIGADOS</div>
         <div class="sistema-online">QUARTO 404 ABERTO</div>
+        <div class="success-icon">
+          <div class="checkmark"></div>
+        </div>
+      </div>
+
+      <!-- Puzzle Já Completado -->
+      <div v-if="puzzleJaCompletado" class="puzzle-completed">
+        <div class="puzzle-completed-text">PUZZLE JÁ COMPLETADO</div>
       </div>
 
       <!-- Botão voltar -->
-   <button class="fechar-btn" @click="voltarParaQuarto">Fechar</button>
+      <button class="fechar-btn" @click="voltarParaQuarto">
+        <span class="btn-icon">×</span>
+        <span class="btn-text">Fechar</span>
+      </button>
+      
+      <!-- Instruções -->
+      <div class="instrucoes">
+        Conecte os terminais corretamente para restaurar a energia
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router'
-const router = useRouter()
+import { ref, computed, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { salvarProgressoPuzzle, verificarProgressoPuzzle } from '@/assets/utils/puzzleProgress';
+
+const router = useRouter();
 
 const voltarParaQuarto = () => {
   router.push({ 
@@ -90,10 +132,11 @@ const voltarParaQuarto = () => {
 }
 
 // Estados reativos
-const terminalSelecionado = ref(null)
-const cabosConectados = ref([])
-const puzzleCompleto = ref(false)
-const statusSistema = ref('SISTEMA OFFLINE - RECONECTE OS CABOS')
+const terminalSelecionado = ref(null);
+const cabosConectados = ref([]);
+const puzzleCompleto = ref(false);
+const puzzleJaCompletado = ref(false);
+const statusSistema = ref('SISTEMA OFFLINE - RECONECTE OS CABOS');
 
 // Configuração dos terminais
 const terminaisEsquerda = ref([
@@ -101,14 +144,14 @@ const terminaisEsquerda = ref([
   { id: 'E2', label: 'DATA', conectado: false, pareamento: 'D1', posicao: { x: 0, y: 160 } },
   { id: 'E3', label: 'GND', conectado: false, pareamento: 'D4', posicao: { x: 0, y: 240 } },
   { id: 'E4', label: 'PWR-B', conectado: false, pareamento: 'D3', posicao: { x: 0, y: 320 } }
-])
+]);
 
 const terminaisDireita = ref([
   { id: 'D1', label: 'IN-02', conectado: false, pareamento: 'E2', posicao: { x: 300, y: 80 } },
   { id: 'D2', label: 'IN-01', conectado: false, pareamento: 'E1', posicao: { x: 300, y: 160 } },
   { id: 'D3', label: 'IN-04', conectado: false, pareamento: 'E4', posicao: { x: 300, y: 240 } },
   { id: 'D4', label: 'IN-03', conectado: false, pareamento: 'E3', posicao: { x: 300, y: 320 } }
-])
+]);
 
 // Função para selecionar terminal
 const selecionarTerminal = (terminalId) => {
@@ -117,12 +160,14 @@ const selecionarTerminal = (terminalId) => {
   // Se nenhum terminal está selecionado, seleciona este
   if (!terminalSelecionado.value) {
     terminalSelecionado.value = terminalId
+    emitirSom('select')
     return
   }
 
   // Se o mesmo terminal foi clicado, desseleciona
   if (terminalSelecionado.value === terminalId) {
     terminalSelecionado.value = null
+    emitirSom('deselect')
     return
   }
 
@@ -139,7 +184,10 @@ const tentarConexao = (terminal1Id, terminal2Id) => {
   if (!terminal1 || !terminal2) return
 
   // Verifica se já estão conectados
-  if (terminal1.conectado || terminal2.conectado) return
+  if (terminal1.conectado || terminal2.conectado) {
+    emitirSom('error')
+    return
+  }
 
   // Verifica se a conexão está correta
   const conexaoCorreta = terminal1.pareamento === terminal2Id
@@ -163,12 +211,14 @@ const tentarConexao = (terminal1Id, terminal2Id) => {
     // Marca terminais como conectados
     terminal1.conectado = true
     terminal2.conectado = true
+    emitirSom('connect')
     statusSistema.value = `CONEXÃO ESTABELECIDA - ${cabosConectados.value.filter(c => c.status === 'correto').length}/4`
     
     // Verifica se o puzzle foi completado
     verificarCompletude()
   } else {
-    // Remove cabo incorreto após 1 segundo
+    emitirSom('error')
+    // Remove cabo incorreto após 3 segundos
     setTimeout(() => {
       cabosConectados.value = cabosConectados.value.filter(cabo => cabo.id !== novoCabo.id)
     }, 3000)
@@ -187,6 +237,10 @@ const verificarCompletude = () => {
   if (conexoesCorretas === 4) {
     puzzleCompleto.value = true
     statusSistema.value = 'SISTEMA ONLINE - ENERGIA RESTAURADA'
+    emitirSom('success')
+    
+    // Salvar progresso no localStorage
+    salvarProgressoPuzzle('403')
     
     // Fecha automaticamente após 3 segundos
     setTimeout(() => {
@@ -195,45 +249,68 @@ const verificarCompletude = () => {
   }
 }
 
-
-
-
-
 // Efeitos sonoros simulados no console (opcional)
 const emitirSom = (tipo) => {
   console.log(`🔊 Som: ${tipo}`)
 }
 
+// Watcher para verificar quando o puzzle é resolvido
+watch(puzzleCompleto, (novoValor) => {
+  if (novoValor && !puzzleJaCompletado.value) {
+    console.log("Puzzle 403 resolvido!");
+  }
+});
+
 onMounted(() => {
-  console.log('Puzzle de cabos carregado')
+  // Verificar se o puzzle já foi completado anteriormente
+  puzzleJaCompletado.value = verificarProgressoPuzzle('403')
+  
+  if (puzzleJaCompletado.value) {
+    puzzleCompleto.value = true
+    statusSistema.value = 'SISTEMA ONLINE - ENERGIA RESTAURADA'
+    
+    // Recriar as conexões corretas visualmente
+    const conexoesCorretas = [
+      { from: 'E1', to: 'D2' },
+      { from: 'E2', to: 'D1' },
+      { from: 'E3', to: 'D4' },
+      { from: 'E4', to: 'D3' }
+    ];
+    
+    conexoesCorretas.forEach(conexao => {
+      const terminal1 = encontrarTerminal(conexao.from);
+      const terminal2 = encontrarTerminal(conexao.to);
+      
+      if (terminal1 && terminal2) {
+        terminal1.conectado = true;
+        terminal2.conectado = true;
+        
+        cabosConectados.value.push({
+          id: `${conexao.from}-${conexao.to}`,
+          x1: terminal1.posicao.x,
+          y1: terminal1.posicao.y,
+          x2: terminal2.posicao.x,
+          y2: terminal2.posicao.y,
+          status: 'correto',
+          cor: '#00ff41',
+          terminal1: conexao.from,
+          terminal2: conexao.to
+        });
+      }
+    });
+  }
+  
+  console.log(`Puzzle 403 - Já completado: ${puzzleJaCompletado.value}`);
 })
+
+const statusDisplayClass = computed(() => {
+  return { 'status-online': puzzleCompleto.value };
+});
 </script>
 
 <style scoped>
-
-.fechar-btn:active {
-  transform: translateY(1px);
-}
-
-.fechar-btn {
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
-  padding: 8px 16px;
-  background: rgba(20, 20, 20, 0.8);
-  color: white;
-  border: 1px solid #555;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 14px;
-  transition: background-color 0.3s, transform 0.2s;
-}
-
-.fechar-btn:hover {
-  background: rgba(40, 40, 40, 0.9);
-  transform: translateY(-1px);
-}
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
 .puzzle-container {
   position: fixed;
@@ -241,46 +318,95 @@ onMounted(() => {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  background: radial-gradient(circle at center, #121212 0%, #050505 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Courier New', monospace;
+  font-family: 'Share Tech Mono', monospace;
   z-index: 1000;
+  overflow: hidden;
+}
+
+.puzzle-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 255, 65, 0.03) 0px,
+      rgba(0, 255, 65, 0.03) 1px,
+      transparent 1px,
+      transparent 2px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 255, 65, 0.03) 0px,
+      rgba(0, 255, 65, 0.03) 1px,
+      transparent 1px,
+      transparent 2px
+    );
+  pointer-events: none;
 }
 
 .painel-principal {
-  background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-  border: 2px solid #444;
+  background: linear-gradient(145deg, #1a1a1a, #0a0a0a);
+  border: 2px solid #333;
   border-radius: 12px;
   padding: 30px;
   box-shadow: 
-    0 0 30px rgba(0, 255, 65, 0.1),
-    inset 0 0 20px rgba(0, 0, 0, 0.5);
+    0 0 40px rgba(0, 255, 65, 0.15),
+    inset 0 0 20px rgba(0, 0, 0, 0.8);
   position: relative;
-  min-width: 800px;
+  width: 800px;
   min-height: 600px;
+  overflow: hidden;
 }
 
-.titulo-puzzle {
-  color: #00ff41;
+.painel-principal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.5), transparent);
+}
+
+.puzzle-header {
+  margin-bottom: 30px;
   text-align: center;
-  font-size: 24px;
+}
+
+.puzzle-title {
+  color: #00ff41;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 28px;
   font-weight: bold;
-  margin-bottom: 10px;
-  text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.7);
   letter-spacing: 2px;
+  margin-bottom: 10px;
 }
 
 .status-display {
-  color: #ffaa00;
-  text-align: center;
-  font-size: 12px;
-  margin-bottom: 30px;
-  padding: 8px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
+  color: #ff9900;
+  font-size: 14px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 20px;
   border: 1px solid #333;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.status-online {
+  color: #00ff41;
+  border-color: #00ff41;
+  background: rgba(0, 255, 65, 0.1);
+  animation: pulse 2s infinite;
 }
 
 .area-cabos {
@@ -289,22 +415,24 @@ onMounted(() => {
   align-items: center;
   height: 400px;
   position: relative;
+  margin: 0 auto;
+  max-width: 700px;
 }
 
 .terminais-esquerda,
 .terminais-direita {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 40px;
   padding: 20px 0;
 }
 
 .terminal {
-  width: 80px;
-  height: 60px;
-  background: linear-gradient(145deg, #333, #222);
-  border: 2px solid #555;
-  border-radius: 8px;
+  width: 100px;
+  height: 70px;
+  background: linear-gradient(145deg, #222, #111);
+  border: 2px solid #444;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -312,42 +440,96 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.terminal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
 }
 
 .terminal:hover {
-  border-color: #777;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  border-color: #666;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+  transform: translateY(-2px);
 }
 
 .terminal-selecionado {
-  border-color: #ffaa00 !important;
-  box-shadow: 0 0 20px rgba(255, 170, 0, 0.5) !important;
+  border-color: #ff9900 !important;
+  box-shadow: 0 0 25px rgba(255, 153, 0, 0.5) !important;
+  transform: translateY(-3px);
 }
 
 .terminal-conectado {
   border-color: #00ff41 !important;
-  box-shadow: 0 0 20px rgba(0, 255, 65, 0.3) !important;
+  box-shadow: 0 0 25px rgba(0, 255, 65, 0.4) !important;
+}
+
+.terminal-conector {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  margin-bottom: 8px;
 }
 
 .terminal-interno {
-  width: 20px;
-  height: 20px;
-  background: #111;
+  width: 16px;
+  height: 16px;
+  background: #222;
   border-radius: 50%;
-  border: 2px solid #666;
-  margin-bottom: 4px;
+  border: 2px solid #555;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
+}
+
+.terminal-anel {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #444;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.3s ease;
+}
+
+.terminal-selecionado .terminal-interno {
+  background: #ff9900;
+  border-color: #ff9900;
+  box-shadow: 0 0 10px rgba(255, 153, 0, 0.7);
+}
+
+.terminal-selecionado .terminal-anel {
+  border-color: #ff9900;
+  box-shadow: 0 0 10px rgba(255, 153, 0, 0.3);
 }
 
 .terminal-conectado .terminal-interno {
   background: #00ff41;
   border-color: #00ff41;
-  box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.7);
+}
+
+.terminal-conectado .terminal-anel {
+  border-color: #00ff41;
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
 }
 
 .terminal-label {
   color: #ccc;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: bold;
+  letter-spacing: 1px;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
 
 .area-conexoes {
@@ -356,10 +538,11 @@ onMounted(() => {
   top: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
+  z-index: -1;
 }
 
 .svg-cabos {
-  filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.7));
 }
 
 .cabo-linha {
@@ -367,23 +550,28 @@ onMounted(() => {
 }
 
 .cabo-linha.correto {
-  stroke: #00ff41;
+  stroke-dasharray: 5, 3;
+  animation: cabo-pulse 2s infinite, cabo-dash 30s linear infinite;
 }
 
 .cabo-linha.incorreto {
-  stroke: #ff4444;
+  stroke-dasharray: 5, 3;
   animation: cabo-erro 1s ease-out;
 }
 
 @keyframes cabo-pulse {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: 0.8; stroke-width: 5px; }
+  50% { opacity: 1; stroke-width: 6px; }
+}
+
+@keyframes cabo-dash {
+  to { stroke-dashoffset: -1000; }
 }
 
 @keyframes cabo-erro {
-  0% { opacity: 1; }
-  50% { opacity: 0.3; }
-  100% { opacity: 0; }
+  0% { opacity: 1; stroke-width: 6px; }
+  50% { opacity: 0.5; stroke-width: 4px; }
+  100% { opacity: 0; stroke-width: 2px; }
 }
 
 .mensagem-sucesso {
@@ -391,26 +579,74 @@ onMounted(() => {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(0, 255, 65, 0.1);
+  background: rgba(0, 0, 0, 0.8);
   border: 2px solid #00ff41;
   border-radius: 12px;
-  padding: 30px;
+  padding: 40px;
   text-align: center;
   animation: sucesso-aparecer 0.5s ease-out;
+  box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+  min-width: 300px;
 }
 
 .texto-sucesso {
   color: #00ff41;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
-  margin-bottom: 10px;
+  font-family: 'Orbitron', sans-serif;
+  margin-bottom: 15px;
   text-shadow: 0 0 20px rgba(0, 255, 65, 0.8);
+  letter-spacing: 2px;
 }
 
 .sistema-online {
-  color: #ffaa00;
-  font-size: 14px;
+  color: #ff9900;
+  font-size: 16px;
   animation: piscar 1s infinite;
+  margin-bottom: 20px;
+}
+
+.success-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(0, 255, 65, 0.1);
+  border: 2px solid #00ff41;
+  border-radius: 50%;
+  margin: 0 auto;
+  position: relative;
+  animation: pulse 2s infinite;
+}
+
+.checkmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 15px;
+  border-bottom: 3px solid #00ff41;
+  border-left: 3px solid #00ff41;
+  transform: translate(-50%, -60%) rotate(-45deg);
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.8);
+}
+
+.puzzle-completed {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid #00ff41;
+  border-radius: 4px;
+  padding: 5px 10px;
+  z-index: 10;
+}
+
+.puzzle-completed-text {
+  color: #00ff41;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
 }
 
 @keyframes sucesso-aparecer {
@@ -425,34 +661,57 @@ onMounted(() => {
 }
 
 @keyframes piscar {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0.5; }
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.6; }
 }
 
-.botao-voltar {
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(0, 255, 65, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(0, 255, 65, 0.8); }
+}
+
+.fechar-btn {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background: rgba(20, 20, 20, 0.8);
+  color: #ccc;
+  border: 1px solid #444;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fechar-btn:hover {
+  background: rgba(40, 40, 40, 0.9);
+  color: #fff;
+  border-color: #666;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.fechar-btn:active {
+  transform: translateY(1px);
+}
+
+.btn-icon {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.instrucoes {
   position: absolute;
   bottom: 20px;
   left: 20px;
-  background: linear-gradient(145deg, #444, #333);
-  border: 2px solid #666;
-  border-radius: 6px;
-  color: #ccc;
-  padding: 10px 20px;
-  font-family: inherit;
+  color: #888;
   font-size: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.botao-voltar:hover {
-  background: linear-gradient(145deg, #555, #444);
-  border-color: #777;
-  color: #fff;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
-}
-
-.botao-voltar:active {
-  transform: translateY(1px);
+  max-width: 300px;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
 }
 </style>
